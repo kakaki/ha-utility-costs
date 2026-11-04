@@ -1,0 +1,144 @@
+{
+  "title": "Koszty mediów",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Koszty mediów",
+        "description": "Rejestr faktur, taryf i rat za media. Media, liczniki i ceny ustawisz potem w panelu Koszty mediów.",
+        "data": {
+          "currency": "Waluta"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Koszty mediów są już skonfigurowane.",
+      "single_instance_allowed": "Koszty mediów są już skonfigurowane."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "price": {
+        "name": "Cena{zone}"
+      },
+      "fixed_fee": {
+        "name": "Opłata stała"
+      },
+      "last_balance": {
+        "name": "Ostatnie rozliczenie"
+      },
+      "next_installment": {
+        "name": "Następna rata"
+      },
+      "month_cost": {
+        "name": "Koszt w tym miesiącu"
+      },
+      "year_forecast": {
+        "name": "Prognoza roczna"
+      }
+    }
+  },
+  "services": {
+    "import_file": {
+      "name": "Import z pliku",
+      "description": "Importuje dostawców, taryfy, faktury, raty, odczyty i korekty z pliku JSON w folderze konfiguracji.",
+      "fields": {
+        "path": {
+          "name": "Ścieżka pliku",
+          "description": "Ścieżka względem folderu konfiguracji."
+        },
+        "mode": {
+          "name": "Tryb",
+          "description": "Scal aktualizuje rekordy o tym samym id; zastąp najpierw usuwa wszystkie dane."
+        }
+      }
+    },
+    "export": {
+      "name": "Eksport",
+      "description": "Zwraca wszystkie zapisane dane jako odpowiedź."
+    },
+    "add_invoice": {
+      "name": "Dodaj fakturę",
+      "description": "Dodaje fakturę do rejestru.",
+      "fields": {
+        "medium": {
+          "name": "Medium",
+          "description": "Id medium z ustawień, np. electricity, gas, water."
+        },
+        "period_from": {
+          "name": "Okres od",
+          "description": "Okres od"
+        },
+        "period_to": {
+          "name": "Okres do",
+          "description": "Okres do"
+        },
+        "amount": {
+          "name": "Kwota",
+          "description": "Kwota brutto faktury."
+        },
+        "quantities": {
+          "name": "Ilości",
+          "description": "Ilość na strefę, np. day i night."
+        },
+        "balance": {
+          "name": "Saldo",
+          "description": "Nadpłata (dodatnia) lub niedopłata (ujemna)."
+        },
+        "supplier_id": {
+          "name": "Id dostawcy",
+          "description": "Id dostawcy"
+        },
+        "number": {
+          "name": "Numer faktury",
+          "description": "Numer faktury"
+        },
+        "issue_date": {
+          "name": "Data wystawienia",
+          "description": "Data wystawienia"
+        },
+        "due_date": {
+          "name": "Termin płatności",
+          "description": "Termin płatności"
+        },
+        "kind": {
+          "name": "Rodzaj",
+          "description": "Rodzaj"
+        },
+        "note": {
+          "name": "Notatka",
+          "description": "Notatka"
+        }
+      }
+    }
+  },
+  "selector": {
+    "import_mode": {
+      "options": {
+        "merge": "Scal",
+        "replace": "Zastąp"
+      }
+    },
+    "invoice_kind": {
+      "options": {
+        "settlement": "Rozliczeniowa",
+        "forecast": "Prognozowa",
+        "correction": "Korekta",
+        "periodic": "Okresowa"
+      }
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "Koszty mediów nie są skonfigurowane."
+    },
+    "bad_path": {
+      "message": "Plik musi być w folderze konfiguracji."
+    },
+    "bad_file": {
+      "message": "Nie udało się odczytać pliku: {error}"
+    },
+    "unknown_medium": {
+      "message": "Nieznane medium. Najpierw dodaj je w ustawieniach panelu."
+    }
+  }
+}

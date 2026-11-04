@@ -1,0 +1,77 @@
+import_file:
+  fields:
+    path:
+      required: true
+      example: "utility_costs_import.json"
+      selector:
+        text:
+    mode:
+      default: merge
+      selector:
+        select:
+          options:
+            - merge
+            - replace
+          translation_key: import_mode
+
+export:
+
+add_invoice:
+  fields:
+    medium:
+      required: true
+      example: electricity
+      selector:
+        text:
+    period_from:
+      required: true
+      selector:
+        date:
+    period_to:
+      required: true
+      selector:
+        date:
+    amount:
+      required: true
+      selector:
+        number:
+          min: -1000000
+          max: 1000000
+          step: 0.01
+          mode: box
+    quantities:
+      example: '{"day": 120.5, "night": 80}'
+      selector:
+        object:
+    balance:
+      selector:
+        number:
+          min: -1000000
+          max: 1000000
+          step: 0.01
+          mode: box
+    supplier_id:
+      selector:
+        text:
+    number:
+      selector:
+        text:
+    issue_date:
+      selector:
+        date:
+    due_date:
+      selector:
+        date:
+    kind:
+      selector:
+        select:
+          options:
+            - settlement
+            - forecast
+            - correction
+            - periodic
+          translation_key: invoice_kind
+    note:
+      selector:
+        text:
+          multiline: true

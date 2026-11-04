@@ -1,0 +1,26 @@
+{
+  "domain": "utility_costs",
+  "name": "Utility Costs",
+  "after_dependencies": [
+    "ai_task",
+    "media_source"
+  ],
+  "codeowners": [
+    "@kakaki"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "http",
+    "frontend",
+    "panel_custom",
+    "recorder",
+    "websocket_api"
+  ],
+  "documentation": "https://github.com/kakaki/ha-utility-costs",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/kakaki/ha-utility-costs/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.4.0"
+}

@@ -1,0 +1,144 @@
+{
+  "title": "Nebenkosten",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Nebenkosten",
+        "description": "Verzeichnis für Rechnungen, Tarife und Abschläge. Medien, Zähler und Preise werden später im Panel Nebenkosten eingestellt.",
+        "data": {
+          "currency": "Währung"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Nebenkosten ist bereits eingerichtet.",
+      "single_instance_allowed": "Nebenkosten ist bereits eingerichtet."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "price": {
+        "name": "Preis{zone}"
+      },
+      "fixed_fee": {
+        "name": "Grundgebühr"
+      },
+      "last_balance": {
+        "name": "Letzte Abrechnung"
+      },
+      "next_installment": {
+        "name": "Nächster Abschlag"
+      },
+      "month_cost": {
+        "name": "Kosten diesen Monat"
+      },
+      "year_forecast": {
+        "name": "Jahresprognose"
+      }
+    }
+  },
+  "services": {
+    "import_file": {
+      "name": "Aus Datei importieren",
+      "description": "Importiert Lieferanten, Tarife, Rechnungen, Abschläge, Zählerstände und Korrekturen aus einer JSON-Datei im Konfigurationsordner.",
+      "fields": {
+        "path": {
+          "name": "Dateipfad",
+          "description": "Pfad relativ zum Konfigurationsordner."
+        },
+        "mode": {
+          "name": "Modus",
+          "description": "Zusammenführen aktualisiert Einträge mit gleicher id; Ersetzen löscht zuerst alle Daten."
+        }
+      }
+    },
+    "export": {
+      "name": "Export",
+      "description": "Gibt alle gespeicherten Daten als Antwort zurück."
+    },
+    "add_invoice": {
+      "name": "Rechnung hinzufügen",
+      "description": "Fügt eine Rechnung hinzu.",
+      "fields": {
+        "medium": {
+          "name": "Medium",
+          "description": "Medium-id aus den Einstellungen, z. B. electricity, gas, water."
+        },
+        "period_from": {
+          "name": "Zeitraum von",
+          "description": "Zeitraum von"
+        },
+        "period_to": {
+          "name": "Zeitraum bis",
+          "description": "Zeitraum bis"
+        },
+        "amount": {
+          "name": "Betrag",
+          "description": "Bruttobetrag der Rechnung."
+        },
+        "quantities": {
+          "name": "Mengen",
+          "description": "Menge pro Zone, z. B. day und night."
+        },
+        "balance": {
+          "name": "Saldo",
+          "description": "Guthaben (positiv) oder Nachzahlung (negativ)."
+        },
+        "supplier_id": {
+          "name": "Lieferanten-id",
+          "description": "Lieferanten-id"
+        },
+        "number": {
+          "name": "Rechnungsnummer",
+          "description": "Rechnungsnummer"
+        },
+        "issue_date": {
+          "name": "Rechnungsdatum",
+          "description": "Rechnungsdatum"
+        },
+        "due_date": {
+          "name": "Fälligkeitsdatum",
+          "description": "Fälligkeitsdatum"
+        },
+        "kind": {
+          "name": "Art",
+          "description": "Art"
+        },
+        "note": {
+          "name": "Notiz",
+          "description": "Notiz"
+        }
+      }
+    }
+  },
+  "selector": {
+    "import_mode": {
+      "options": {
+        "merge": "Zusammenführen",
+        "replace": "Ersetzen"
+      }
+    },
+    "invoice_kind": {
+      "options": {
+        "settlement": "Abrechnung",
+        "forecast": "Abschlagsplan",
+        "correction": "Korrektur",
+        "periodic": "Periodisch"
+      }
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "Nebenkosten ist nicht eingerichtet."
+    },
+    "bad_path": {
+      "message": "Die Datei muss im Konfigurationsordner liegen."
+    },
+    "bad_file": {
+      "message": "Die Datei konnte nicht gelesen werden: {error}"
+    },
+    "unknown_medium": {
+      "message": "Unbekanntes Medium. Zuerst in den Panel-Einstellungen anlegen."
+    }
+  }
+}

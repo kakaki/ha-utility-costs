@@ -1,0 +1,144 @@
+{
+  "title": "Utility Costs",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Utility costs",
+        "description": "Register for utility invoices, tariffs and instalments. Media, meters and prices are set later in the Utility costs panel.",
+        "data": {
+          "currency": "Currency"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Utility Costs is already set up.",
+      "single_instance_allowed": "Utility Costs is already set up."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "price": {
+        "name": "Price{zone}"
+      },
+      "fixed_fee": {
+        "name": "Fixed fee"
+      },
+      "last_balance": {
+        "name": "Last settlement"
+      },
+      "next_installment": {
+        "name": "Next instalment"
+      },
+      "month_cost": {
+        "name": "Cost this month"
+      },
+      "year_forecast": {
+        "name": "Year forecast"
+      }
+    }
+  },
+  "services": {
+    "import_file": {
+      "name": "Import from file",
+      "description": "Imports suppliers, tariffs, invoices, instalments, readings and corrections from a JSON file in the configuration folder.",
+      "fields": {
+        "path": {
+          "name": "File path",
+          "description": "Path relative to the configuration folder."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "Merge updates records with the same id; replace removes all existing data first."
+        }
+      }
+    },
+    "export": {
+      "name": "Export",
+      "description": "Returns all stored data as a response."
+    },
+    "add_invoice": {
+      "name": "Add invoice",
+      "description": "Adds an invoice to the register.",
+      "fields": {
+        "medium": {
+          "name": "Medium",
+          "description": "Medium id from settings, e.g. electricity, gas, water."
+        },
+        "period_from": {
+          "name": "Period from",
+          "description": "Period from"
+        },
+        "period_to": {
+          "name": "Period to",
+          "description": "Period to"
+        },
+        "amount": {
+          "name": "Amount",
+          "description": "Gross amount of the invoice."
+        },
+        "quantities": {
+          "name": "Quantities",
+          "description": "Quantity per zone, e.g. day and night."
+        },
+        "balance": {
+          "name": "Balance",
+          "description": "Overpayment (positive) or underpayment (negative)."
+        },
+        "supplier_id": {
+          "name": "Supplier id",
+          "description": "Supplier id"
+        },
+        "number": {
+          "name": "Invoice number",
+          "description": "Invoice number"
+        },
+        "issue_date": {
+          "name": "Issue date",
+          "description": "Issue date"
+        },
+        "due_date": {
+          "name": "Due date",
+          "description": "Due date"
+        },
+        "kind": {
+          "name": "Type",
+          "description": "Type"
+        },
+        "note": {
+          "name": "Note",
+          "description": "Note"
+        }
+      }
+    }
+  },
+  "selector": {
+    "import_mode": {
+      "options": {
+        "merge": "Merge",
+        "replace": "Replace"
+      }
+    },
+    "invoice_kind": {
+      "options": {
+        "settlement": "Settlement",
+        "forecast": "Forecast",
+        "correction": "Correction",
+        "periodic": "Periodic"
+      }
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "Utility Costs is not set up."
+    },
+    "bad_path": {
+      "message": "The file must be inside the configuration folder."
+    },
+    "bad_file": {
+      "message": "The file could not be read: {error}"
+    },
+    "unknown_medium": {
+      "message": "Unknown medium. Add it in the panel settings first."
+    }
+  }
+}
