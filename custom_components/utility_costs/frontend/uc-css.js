@@ -56,6 +56,19 @@ label.chk input { width:20px; height:20px; min-height:0; }
 .card dd { margin:0; text-align:right; }
 .chips { display:flex; flex-wrap:wrap; gap:6px; }
 .chip { background: var(--secondary-background-color); border-radius:14px; padding:4px 10px; font-size:13px; }
+.ystep { display:flex; align-items:center; gap:4px; }
+.ystep select { min-width:88px; flex:1; }
+button.yarr { min-width:40px; width:40px; padding:0; font-size:20px; line-height:1; margin:0; flex:0 0 auto; }
+/* one control height everywhere controls sit side by side */
+.filters select, .filters button, .sumbar button, .exp button, .attact button, .attact .filebtn, .actions button, .tpl button, .row button {
+  height:40px; min-height:40px; box-sizing:border-box; margin-top:0; padding-top:0; padding-bottom:0; font-size:14px; line-height:1; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+.filters select { font-size:15px; display:block; }
+.grid input:not([type=checkbox]):not([type=radio]), .grid select, .zones input { height:42px; min-height:42px; box-sizing:border-box; }
+button.yarr:disabled { opacity:.35; }
+.chip.att { background: color-mix(in srgb, var(--primary-color) 18%, transparent); color: var(--primary-color); font-weight:500; }
+td.c { text-align:center; width:1%; white-space:nowrap; }
+button.attn { font-size:15px; padding:2px 4px; min-height:0; text-decoration:none; display:inline-flex; align-items:center; gap:1px; }
+button.attn b { font-size:11px; font-weight:600; background: var(--primary-color); color: var(--text-primary-color, #fff); border-radius:8px; padding:0 5px; margin-left:2px; line-height:16px; }
 .chip small { color: var(--secondary-text-color); }
 .tot { display:flex; justify-content:space-between; padding:4px 4px 2px; color: var(--secondary-text-color); font-size:14px; }
 .tot b { color: var(--primary-text-color); }
@@ -106,6 +119,21 @@ legend { font-size:13px; color: var(--secondary-text-color); padding:0 4px; }
 label.chk { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
 .attbox { border:1px dashed var(--divider-color); border-radius:10px; padding:10px 12px; margin-bottom:14px; display:flex; flex-direction:column; gap:8px; }
 .attrow { display:flex; align-items:center; gap:8px; font-size:14px; } .attrow a { color: var(--primary-color); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dsplit { display:flex; flex:1; min-height:0; }
+.dsplit > .dbody { min-width:0; }
+.dialog.wp { width:min(1360px, calc(100vw - 32px)); height:calc(100vh - 32px); }
+.dialog.wp .dbody { flex:0 0 min(500px, 46%); }
+.prev { flex:1 1 0; min-width:0; display:flex; flex-direction:column; border-right:1px solid var(--divider-color); background: var(--secondary-background-color, rgba(127,127,127,.08)); }
+.prevbar { display:flex; align-items:center; gap:6px; padding:6px 10px; border-bottom:1px solid var(--divider-color); font-size:13px; min-width:0; }
+.prevbar .sp { flex:1; }
+.prevbar .pname { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; color: var(--secondary-text-color); }
+button.ptab { min-height:28px; padding:2px 10px; font-size:12px; border-radius:14px; margin:0; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:0 0 auto; }
+button.ptab.on { border-color: var(--primary-color); color: var(--primary-color); }
+.prevbody { flex:1; min-height:0; display:flex; align-items:center; justify-content:center; overflow:auto; }
+.prevbody iframe { width:100%; height:100%; border:0; background:#fff; }
+.prevbody img { max-width:100%; max-height:100%; object-fit:contain; }
+.pmsg { padding:24px; }
+.mobonly { display:none; }
 .attact { display:flex; flex-wrap:wrap; gap:8px; }
 .filebtn { display:inline-flex; flex-direction:row; align-items:center; gap:6px; min-height:40px; padding:0 14px; border:1px solid var(--divider-color); border-radius:8px; background: var(--card-background-color); color: var(--primary-text-color); font-size:14px; cursor:pointer; }
 .filebtn.dis { opacity:.6; pointer-events:none; }
@@ -174,6 +202,13 @@ details.adv { margin-top:16px; } details.adv summary { cursor:pointer; color: va
   .dhead { padding:18px 8px 10px 16px; }
   .grab { display:block; position:absolute; top:6px; left:50%; transform:translateX(-50%); width:40px; height:4px; border-radius:2px; background: var(--divider-color); }
   .dbody { padding:14px 16px; }
+  .dialog.wp { width:100vw; height:92vh; height:92dvh; }
+  .dialog.wp .dbody { flex:1 1 auto; }
+  .dsplit { flex-direction:column; }
+  .prev { flex:0 0 auto; border-right:none; border-bottom:1px solid var(--divider-color); }
+  .prevbody { flex:none; height:42vh; height:42dvh; }
+  .prev.hid .prevbody { display:none; }
+  .mobonly { display:inline-block; }
   .grid { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:12px 10px; }
   .grid > * { min-width:0; }
   input[type=date], input[type=month] { -webkit-appearance:none; appearance:none; width:100%; min-width:0; max-width:100%; display:block; text-align:left; }

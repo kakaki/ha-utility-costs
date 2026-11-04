@@ -37,6 +37,21 @@ def _sources(medium: dict[str, Any], zone: str) -> list[dict[str, Any]]:
     return sorted(out, key=lambda s: s["from"])
 
 
+def _repair_change(change: float, prev_state: float | None, state: float | None) -> float:
+    """Undo a broken long-term "sum".
+
+    After a gap in recorder data HA sometimes starts the statistic's sum
+    again from 0, so the day shows a huge negative change although the
+    meter itself kept counting up. When the state rose, the real
+    consumption is the state difference; a genuine decrease (net meters)
+    is left as it is.
+    """
+    if change >= 0 or prev_state is None or state is None:
+        return change
+    diff = state - prev_state
+    return diff if diff >= 0 else change
+
+
 class DailyStats:
     """Fetches and caches per-day statistics for configured media."""
 
@@ -76,11 +91,12 @@ class DailyStats:
             ids,
             "day",
             None,
-            {"change"},
+            {"change", "state"},
         )
         per_id: dict[str, dict[str, float]] = {}
         for sid, rows in stats.items():
             bucket = per_id.setdefault(sid, {})
+            prev_state: float | None = None
             for row in rows:
                 st = row.get("start")
                 if isinstance(st, (int, float)):
@@ -88,7 +104,13 @@ class DailyStats:
                 else:
                     moment = st
                 day = dt_util.as_local(moment).date().isoformat()
-                bucket[day] = bucket.get(day, 0.0) + float(row.get("change") or 0)
+                change = float(row.get("change") or 0)
+                state = row.get("state")
+                state = float(state) if isinstance(state, (int, float)) else None
+                change = _repair_change(change, prev_state, state)
+                if state is not None:
+                    prev_state = state
+                bucket[day] = bucket.get(day, 0.0) + change
 
         daily: dict[str, dict[str, dict[str, float]]] = {}
         for medium in media:

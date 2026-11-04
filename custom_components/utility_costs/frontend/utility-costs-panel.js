@@ -93,9 +93,11 @@ class UtilityCostsPanel extends HTMLElement {
     if (!force) this._summary = null;
     this._busy = force;
     this._render();
+    const seq = (this._sumSeq = (this._sumSeq || 0) + 1);
     try {
       const [cur, prev] = await Promise.all([this.ws({ type: "summary", year: Number(this._year), force }),
         this.ws({ type: "summary", year: Number(this._year) - 1 }).catch(() => null)]);
+      if (seq !== this._sumSeq) return;
       this._summary = cur; this._prev = prev;
     } catch (e) { this._msg = `${this.t.error}: ${e.message || e}`; }
     this._busy = false;
@@ -135,6 +137,7 @@ class UtilityCostsPanel extends HTMLElement {
         [t.f.medium, (r) => `<span class="dot" style="background:${this.color(r.medium)}"></span>${esc(this.mName(r.medium))}`],
         [t.f.supplier_id, sup],
         [t.f.period_from, (r) => `${this.date(r.period_from)} – ${this.date(r.period_to)}`],
+        ["📎", (r) => { const a = r.attachments || []; return a.length ? `<button class="link attn" data-edit="${esc(r.id)}" title="${esc(a.map((x) => x.name).join("\n"))}">📎${a.length > 1 ? `<b>${a.length}</b>` : ""}</button>` : ""; }, "c"],
         [t.f.quantities, (r) => `${qty(r)} ${esc(this.unit(r.medium))}`, "r"],
         [t.vs_ha, (r) => this.devCell(r.id), "r"],
         [t.f.amount, (r) => this.money(r.amount), "r"],
@@ -180,7 +183,7 @@ class UtilityCostsPanel extends HTMLElement {
         sub = esc(sup) + (r.number ? ` · ${esc(r.number)}` : "");
         value = this.money(r.amount);
         chips.push(chip("📅 " + per(r.period_from, r.period_to)));
-        if ((r.attachments || []).length) chips.push(chip(`📎 ${r.attachments.length}`));
+        if ((r.attachments || []).length) chips.push(`<span class="chip att" title="${esc(r.attachments.map((x) => x.name).join("\n"))}">📎 ${r.attachments.length}</span>`);
         const q = Object.entries(r.quantities || {}).map(([z, v]) => `${this.num(v, 1)}${multi && z !== "total" ? " " + esc(this.zName(r.medium, z)) : ""}`).join(" + ");
         if (q) chips.push(chip(`${q} ${unit}`));
         const d = this.devCell(r.id); if (d) chips.push(chip(`${esc(t.vs_ha)} ${d}`));
@@ -241,8 +244,9 @@ class UtilityCostsPanel extends HTMLElement {
     const tabs = Object.keys(t.tabs).map((k) => `<button class="tab ${k === this._tab ? "on" : ""}" data-tab="${k}">${esc(t.tabs[k])}</button>`).join("");
     const years = [];
     const now = new Date().getFullYear();
-    for (let y = now + 1; y >= now - 5; y--) years.push(y);
-    const yearSel = `<select id="year">${years.map((y) => `<option ${y === Number(this._year) ? "selected" : ""}>${y}</option>`).join("")}</select>`;
+    for (let y = now + 1; y >= now - 10; y--) years.push(y);
+    const yr = Number(this._year);
+    const yearSel = `<span class="ystep"><button type="button" class="yarr" data-ystep="-1" ${yr <= years[years.length - 1] ? "disabled" : ""} aria-label="${esc(String(yr - 1))}">‹</button><select id="year">${years.map((y) => `<option ${y === yr ? "selected" : ""}>${y}</option>`).join("")}</select><button type="button" class="yarr" data-ystep="1" ${yr >= years[0] ? "disabled" : ""} aria-label="${esc(String(yr + 1))}">›</button></span>`;
     const medSel = `<select id="medium"><option value="">${esc(t.all)}</option>${this.media.map((m) => `<option value="${esc(m.id)}" ${m.id === this._medium ? "selected" : ""}>${esc(this.mName(m.id))}</option>`).join("")}</select>`;
     let body = "";
     if (!this._data) body = `<p class="muted">${esc(t.loading)}</p>`;
@@ -379,10 +383,11 @@ class UtilityCostsPanel extends HTMLElement {
         default: return `<label class="${["date", "number", "month"].includes(f.type) ? "half" : ""}">${label}${f.req ? " *" : ""}<input type="${f.type}" ${f.type === "number" ? 'step="any"' : ""} data-k="${f.key}" value="${esc(v ?? "")}"></label>`;
       }
     };
-    return `<div class="backdrop"><form class="dialog" id="form" style="--mc:${this.color(item.medium)}">
+    const prev = d.col === "invoices" ? this.previewPane() : "";
+    return `<div class="backdrop"><form class="dialog${prev ? " wp" : ""}" id="form" style="--mc:${this.color(item.medium)}">
       <div class="dhead"><span class="grab"></span><h2>${esc(item.id ? t.edit : t.add)} · ${esc(t.tabs[d.col])}</h2><button type="button" class="x" id="dlgx" aria-label="${esc(t.cancel)}">✕</button></div>
-      <div class="dbody">${d.col === "invoices" ? this.attachBlock() : ""}<div class="grid">${this.spec(d.col).map(field).join("")}</div>
-      ${d.error ? `<div class="msg err">${esc(d.error)}</div>` : ""}</div>
+      <div class="dsplit">${prev}<div class="dbody">${d.col === "invoices" ? this.attachBlock() : ""}<div class="grid">${this.spec(d.col).map(field).join("")}</div>
+      ${d.error ? `<div class="msg err">${esc(d.error)}</div>` : ""}</div></div>
       <div class="actions">${item.id ? `<button type="button" class="danger" id="dlgdel">${esc(t.del)}</button>` : ""}<span class="sp"></span><button type="button" id="cancel">${esc(t.cancel)}</button><button type="submit" class="primary">${esc(t.save)}</button></div></form></div>`;
   }
 
@@ -395,7 +400,9 @@ class UtilityCostsPanel extends HTMLElement {
       if (this._tab === "summary" || this._tab === "invoices") await this._loadSummary();
       this._render();
     }));
-    $("#year")?.addEventListener("change", async (e) => { this._year = Number(e.target.value); if (["summary", "invoices"].includes(this._tab)) await this._loadSummary(); this._render(); });
+    const setYear = async (y) => { this._year = y; if (["summary", "invoices"].includes(this._tab)) await this._loadSummary(); this._render(); };
+    $("#year")?.addEventListener("change", (e) => setYear(Number(e.target.value)));
+    this.shadowRoot.querySelectorAll("[data-ystep]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); setYear(Number(this._year) + Number(b.dataset.ystep)); }));
     $("#medium")?.addEventListener("change", (e) => { this._medium = e.target.value; this._render(); });
     $("#add")?.addEventListener("click", () => this.openDialog(this._tab, {}));
     $("#fab")?.addEventListener("click", () => this.openDialog(this._tab, {}));

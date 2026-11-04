@@ -110,6 +110,51 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       ${d.aiMsg ? `<div class="${d.aiErr ? "msg err" : "aimsg"}">${esc(d.aiMsg)}</div>` : ""}</div>`;
   }
 
+  _prevAtt() {
+    const d = this._dialog, atts = (d && d.item.attachments) || [];
+    if (!atts.length) return null;
+    if (!atts.some((a) => a.id === d.prevId)) d.prevId = atts[0].id;
+    return atts.find((a) => a.id === d.prevId);
+  }
+
+  _prevBody(a) {
+    const d = this._dialog, t = this.t, url = (d.blobs || {})[a.id];
+    if (!url) return `<div class="muted small pmsg">${esc(d.prevErr === a.id ? t.prev_err : t.prev_load)}</div>`;
+    return (a.type || "").startsWith("image/")
+      ? `<img src="${url}" alt="${esc(a.name)}">`
+      : `<iframe src="${url}#view=FitH" title="${esc(a.name)}"></iframe>`;
+  }
+
+  previewPane() {
+    const t = this.t, d = this._dialog, a = this._prevAtt();
+    if (!a) return "";
+    const atts = d.item.attachments;
+    const names = atts.length > 1
+      ? atts.map((x) => `<button type="button" class="ptab ${x.id === a.id ? "on" : ""}" data-prev="${esc(x.id)}">${esc(x.name)}</button>`).join("")
+      : `<span class="pname">${esc(a.name)}</span>`;
+    return `<div class="prev ${d.prevHide ? "hid" : ""}"><div class="prevbar">${names}<span class="sp"></span>
+      <button type="button" class="ptab" data-open="${esc(a.id)}" title="${esc(t.prev_open)}">↗</button>
+      <button type="button" class="ptab mobonly" id="prevtog">${esc(d.prevHide ? t.prev_show : t.prev_hide)}</button></div>
+      <div class="prevbody">${this._prevBody(a)}</div></div>`;
+  }
+
+  async _loadPrev() {
+    const d = this._dialog, a = this._prevAtt();
+    if (!a || (d.blobs || {})[a.id] || d.prevLoading === a.id || d.prevErr === a.id) return;
+    d.prevLoading = a.id;
+    try {
+      const res = await this._hass.fetchWithAuth(`/api/utility_costs/file/${encodeURIComponent(a.id)}`);
+      if (!res.ok) throw new Error(res.status);
+      const blob = new Blob([await res.arrayBuffer()], { type: a.type || res.headers.get("Content-Type") || "application/pdf" });
+      (d.blobs = d.blobs || {})[a.id] = URL.createObjectURL(blob);
+    } catch (e) { d.prevErr = a.id; }
+    d.prevLoading = null;
+    if (this._dialog !== d) { Object.values(d.blobs || {}).forEach((u) => URL.revokeObjectURL(u)); return; }
+    const cur = this._prevAtt(), box = this.shadowRoot.querySelector(".prevbody");
+    if (box && cur) box.innerHTML = this._prevBody(cur);
+    if (cur && cur.id !== a.id) this._loadPrev();
+  }
+
   async _aiRead() {
     const d = this._dialog, t = this.t;
     const att = (d.item.attachments || []).slice(-1)[0];
@@ -145,6 +190,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         const j = await res.json();
         if (!res.ok) throw new Error(j.message || res.status);
         d.item.attachments = [...(d.item.attachments || []), j];
+        d.prevId = j.id;
         (d.uploaded = d.uploaded || []).push(j.id);
         d.busy = false;
         if (this._settingsAi() ) { await this._aiRead(); return; }
@@ -157,6 +203,15 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       try { const r = await this.ws({ type: "file_url", file_id: a.dataset.open }); window.open(r.url, "_blank"); }
       catch (e) { d.aiErr = true; d.aiMsg = `${this.t.error}: ${e.message || e}`; this._rerenderKeep(); }
     }));
+    root.querySelectorAll("[data-prev]").forEach((b) => b.addEventListener("click", () => {
+      this._collect(); d.prevId = b.dataset.prev; this._rerenderKeep();
+    }));
+    root.querySelector("#prevtog")?.addEventListener("click", () => {
+      d.prevHide = !d.prevHide;
+      root.querySelector(".prev")?.classList.toggle("hid", d.prevHide);
+      const b = root.querySelector("#prevtog"); if (b) b.textContent = d.prevHide ? this.t.prev_show : this.t.prev_hide;
+    });
+    this._loadPrev();
     root.querySelectorAll("[data-rmatt]").forEach((b) => b.addEventListener("click", () => {
       this._collect();
       const id = b.dataset.rmatt;

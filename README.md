@@ -54,6 +54,7 @@ the current month is kept up to date and a **Recalculate** button forces a full 
 
 - Invoices of any kind: settlement, forecast, periodic, correction – with balance (overpayment / extra charge).
 - Each invoice shows its deviation from the meters (`vs meters −12%`) and data coverage.
+- Attach the PDF or a photo: the editor shows it next to the form, the list marks invoices with 📎 and the number of files.
 - Instalments with due dates, a sensor for the next one.
 - Tariffs over time: unit price per zone, fixed monthly fee, extra charges per unit or per month.
 - Corrections for periods when a meter was broken or replaced.

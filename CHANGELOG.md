@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+- Invoice editor shows the attached PDF or photo next to the form (above it on phones, can be hidden); several files can be switched.
+- Invoice list shows a 📎 marker with the number of attachments.
+- ‹ › arrows next to the year selector.
+- Controls in toolbars and editors have the same height.
+- Fix: meters whose long-term statistic sum was restarted by Home Assistant after a data gap no longer produce a huge negative value; the state difference is used instead.
+
 ## 0.4.0
 - Investment payback results are stored; only the current month is recalculated (instant tab, *Recalculate* button).
 - Notifications: upcoming instalments and invoices that differ from the meters (persistent notification and optional `notify` service).
