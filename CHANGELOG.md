@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.6.0
+- Investments: an *All* chip (first and selected by default when there is more than one project) adds up every project – invested, saved, payback month and average per year – on one chart with the cumulative savings stacked per project. The year details show the split per project and per rule; the expense list shows the project of each purchase.
 - The medium filter is a row of chips instead of a drop-down, on every tab that has it. Several media can be selected at once; *All* clears the filter.
 - Tariffs tab: when a medium is selected and it has more than one tariff, a price-history chart shows the unit price per zone over time. Click (or hover / keyboard) a period to see that tariff: prices with the change against the previous tariff and the first one, fixed fee, supplier and note; ‹ › steps through the tariffs.
 - Monthly cost chart on the summary tab is interactive: click (or hover / keyboard) a month to see the cost and quantity per medium, the same month last year with the change, and the invoices covering that month. ‹ › steps through the months.

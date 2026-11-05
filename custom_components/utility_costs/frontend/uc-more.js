@@ -343,7 +343,7 @@ export const makeMore = ({ esc }) => class {
     try {
       const fd = new FormData();
       fd.append("collection", d.col);
-      if (d.col === "investments" && this._proj) fd.append("project_id", this._proj);
+      if (d.col === "investments" && this._proj && this._proj !== "__all") fd.append("project_id", this._proj);
       fd.append("commit", commit ? "1" : "0");
       fd.append("file", d.file, d.file.name);
       const r = await this._hass.fetchWithAuth("/api/utility_costs/import_table", { method: "POST", body: fd });

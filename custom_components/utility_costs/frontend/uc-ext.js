@@ -1,4 +1,6 @@
 /* Utility Costs – settings wizard, investments / ROI */
+export const ALL_P = "__all";
+const PART_COLORS = ["#4FB477", "#3A9BE0", "#E0A53A", "#8E6CC2", "#D2557A", "#2BB5A8"];
 export const makeExt = ({ esc, getP, setP, uid }) => class {
   /* ---------- shared editors ---------- */
   datalists() {
@@ -236,17 +238,92 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
   get projects() { return this._data?.projects || []; }
 
   projInvestments(pid) {
+    if (pid === ALL_P) return this._data.investments || [];
     const first = this.projects[0]?.id;
     return (this._data.investments || []).filter((i) => i.project_id === pid || (!i.project_id && pid === first));
   }
 
-  async _loadRoi(force = false) {
+  _projValid() {
     const P = this.projects;
-    if (!P.find((p) => p.id === this._proj)) this._proj = P[0]?.id;
+    if (P.length > 1 && (this._proj === undefined || this._proj === null || this._proj === ALL_P)) { this._proj = ALL_P; return; }
+    if (!P.find((p) => p.id === this._proj)) this._proj = P.length > 1 ? ALL_P : P[0]?.id;
+  }
+
+  /* pseudo project used for the "All" chip: every rule of every project */
+  _curProj() {
+    if (this._proj !== ALL_P) return this.projects.find((x) => x.id === this._proj);
+    return { id: ALL_P, name: this.t.all, rules: this.projects.flatMap((p) => (p.rules || []).map((ru) => ({ ...ru, label: `${p.name} · ${ru.label || this.t.types[ru.type || "qty"]}`, _pid: p.id }))) };
+  }
+
+  async _loadRoi(force = false) {
+    this._projValid();
     if (!this._proj) return;
     this._roi = this._roi || {};
-    try { this._roi[this._proj] = await this.ws({ type: "roi", project_id: this._proj, force }); this._roiErr = ""; }
-    catch (e) { this._roiErr = `${this.t.error}: ${e.message || e}`; }
+    try {
+      if (this._proj === ALL_P) {
+        const list = await Promise.all(this.projects.map(async (p) => {
+          if (force || !this._roi[p.id]) this._roi[p.id] = await this.ws({ type: "roi", project_id: p.id, force });
+          return [p, this._roi[p.id]];
+        }));
+        this._roi[ALL_P] = this._aggRoi(list);
+      } else this._roi[this._proj] = await this.ws({ type: "roi", project_id: this._proj, force });
+      this._roiErr = "";
+    } catch (e) { this._roiErr = `${this.t.error}: ${e.message || e}`; }
+  }
+
+  /* sum the results of several projects into one ROI result */
+  _aggRoi(list) {
+    list = list.filter(([, r]) => r && r.years);
+    const sum = (f) => list.reduce((a, [, r]) => a + Number(r[f] || 0), 0);
+    const ys = {}, ms = {};
+    list.forEach(([p, r], pi) => {
+      r.years.forEach((y) => {
+        const a = ys[y.year] = ys[y.year] || { year: y.year, saved: 0, invested: 0, estimated: 0, n: 0, proj: 0, partial: false, by: {} };
+        a.saved += y.saved || 0; a.invested += y.invested || 0; a.estimated += y.estimated || 0; a.n++;
+        if (y.projected) a.proj++; if (y.partial) a.partial = true;
+        a.by[p.id] = { saved: y.saved || 0, invested: y.invested || 0, cum_saved: y.cum_saved || 0, projected: !!y.projected };
+      });
+      (r.months || []).forEach((m) => {
+        const a = ms[m.month] = ms[m.month] || { month: m.month, saved: 0, estimated: 0, rules: {} };
+        a.saved += m.saved || 0;
+        a.estimated = typeof m.estimated === "number" ? (Number(a.estimated) || 0) + m.estimated : a.estimated || m.estimated;
+        Object.assign(a.rules, m.rules || {});
+      });
+    });
+    let cs = 0, ci = 0;
+    const years = Object.values(ys).sort((a, b) => a.year - b.year).map((a) => {
+      cs += a.saved; ci += a.invested;
+      return { year: a.year, saved: a.saved, invested: a.invested, estimated: a.estimated, projected: a.proj === a.n, partial: a.partial, cum_saved: cs, cum_invested: ci, by: a.by };
+    });
+    const months = Object.values(ms).sort((a, b) => a.month.localeCompare(b.month));
+    // carry the cumulative per project over years in which a project has no row
+    const last = {};
+    years.forEach((y) => list.forEach(([p]) => { if (y.by[p.id]) last[p.id] = y.by[p.id].cum_saved; else y.by[p.id] = { saved: 0, invested: 0, cum_saved: last[p.id] || 0, projected: true }; }));
+    // payback: first month in which cumulative savings reach the cumulative investment
+    let payback = null;
+    for (let i = 0; i < years.length && !payback; i++) {
+      const y = years[i];
+      if (!(y.cum_invested > 0) || y.cum_saved < y.cum_invested) continue;
+      const prev = i ? years[i - 1].cum_saved : 0;
+      const ym = months.filter((m) => m.month.startsWith(`${y.year}-`));
+      let mon = null;
+      if (ym.length && !y.projected) { let c = prev; for (const m of ym) { c += m.saved || 0; if (c >= y.cum_invested) { mon = m.month; break; } } }
+      if (!mon) { const f = y.saved > 0 ? (y.cum_invested - prev) / y.saved : 1; mon = `${y.year}-${String(Math.min(12, Math.max(1, Math.ceil(f * 12)))).padStart(2, "0")}`; }
+      payback = { month: mon, projected: y.projected || (y.partial && mon > new Date().toISOString().slice(0, 7)) };
+    }
+    const starts = list.map(([, r]) => r.start).filter(Boolean).sort();
+    const start = starts[0] || null;
+    let payback_years = null;
+    if (payback && start) payback_years = (Date.parse(`${payback.month}-01`) - Date.parse(start)) / (365.25 * 864e5);
+    const invested = sum("invested"), saved = sum("saved");
+    const metas = list.map(([, r]) => r._meta?.computed_at).filter(Boolean).sort();
+    return {
+      start, invested, saved, estimated: sum("estimated"), net: saved - invested, progress_pct: invested ? (saved / invested) * 100 : 0,
+      avg_year: sum("avg_year"), lifetime_saved: sum("lifetime_saved"), price_estimated: list.some(([, r]) => r.price_estimated),
+      payback, payback_years, years, months, rules: list.flatMap(([, r]) => r.rules || []),
+      parts: list.map(([p], i) => ({ id: p.id, name: p.name, color: PART_COLORS[i % PART_COLORS.length] })),
+      _meta: metas.length ? { computed_at: metas[0] } : undefined,
+    };
   }
 
   monthName(mk) { return new Date(mk + "-01T00:00:00").toLocaleDateString(this.locale, { month: "long", year: "numeric" }); }
@@ -264,6 +341,16 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     const step = Math.ceil(n / 8);
     const bars = ys.map((y, i) => {
       const x = i * bw + bw * 0.15, w = bw * 0.7, top = Y(y.cum_saved);
+      if (r.parts) {
+        let base = H - pb2, segs = "";
+        r.parts.forEach((pp) => {
+          const v = Math.max(0, y.by?.[pp.id]?.cum_saved || 0); if (!v) return;
+          const h = (H - pt - pb2) * v / maxV;
+          segs += `<rect x="${x.toFixed(1)}" y="${(base - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" class="${y.projected ? "proj" : ""} ybar" style="fill:${pp.color}"></rect>`;
+          base -= h;
+        });
+        return `${segs}${i % step === 0 || i === n - 1 ? `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle">${String(y.year).slice(2)}'</text>` : ""}`;
+      }
       const ok = y.cum_saved >= y.cum_invested && y.cum_invested > 0;
       return `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${w.toFixed(1)}" height="${(H - pb2 - top).toFixed(1)}" rx="2" class="${ok ? "bok" : "bsv"} ${y.projected ? "proj" : ""} ybar" data-ybar="${y.year}"></rect>
         ${i % step === 0 || i === n - 1 ? `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle">${String(y.year).slice(2)}'</text>` : ""}`;
@@ -276,7 +363,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     return `<div class="chart card"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
       ${nowIdx >= 0 ? `<rect x="${(nowIdx * bw).toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${H - pb2}" class="nowcol"/>` : ""}
       ${bars}<path d="${path}" class="inv"/>${hits}</svg>
-      <div class="legend"><span><i class="lg bsv"></i>${esc(t.chart_cum)}</span><span><i class="lg proj bsv"></i>${esc(t.projected)}</span><span><i class="lg line"></i>${esc(t.chart_inv)}</span></div>
+      <div class="legend">${r.parts ? r.parts.map((pp) => `<span><i class="lg" style="background:${pp.color}"></i>${esc(pp.name)}</span>`).join("") : `<span><i class="lg bsv"></i>${esc(t.chart_cum)}</span>`}<span><i class="lg proj bsv"></i>${esc(t.projected)}</span><span><i class="lg line"></i>${esc(t.chart_inv)}</span></div>
       <div class="ydet">${this.yearDetail(r, sel)}</div></div>`;
   }
 
@@ -294,8 +381,9 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     const y = (r.years || []).find((x) => x.year === year);
     if (!y) return `<p class="muted small">${esc(t.yd_hint)}</p>`;
     const yrs = r.years.map((x) => x.year), i = yrs.indexOf(year);
-    const p = this.projects.find((x) => x.id === this._proj) || {};
+    const p = this._curProj() || {};
     const net = y.cum_saved - y.cum_invested;
+    const byProj = r.parts ? `<div class="ysub">${esc(t.yd_projects)}</div>${r.parts.map((pp) => { const b = y.by?.[pp.id] || {}; if (!b.saved && !b.invested) return ""; return `<div class="rrow"><span class="rlbl"><span><span class="dot" style="background:${pp.color}"></span>${esc(pp.name)}</span>${b.invested ? `<small class="neg">−${this.money(b.invested)}</small>` : ""}</span><b class="${b.saved < 0 ? "neg" : ""}">${this.money(b.saved)}</b></div>`; }).join("")}` : "";
     const months = (r.months || []).filter((m) => m.month.startsWith(`${year}-`));
     const mx = Math.max(...months.map((m) => Math.abs(m.saved || 0)), 1);
     const mbars = months.length ? `<div class="ymon">${months.map((m) => {
@@ -319,7 +407,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         <div><span>${esc(t.yd_cum)}</span><b>${this.money(y.cum_saved)}</b><small>/ ${this.money(y.cum_invested)}</small></div>
         <div><span>${esc(t.yd_net)}</span><b class="${net >= 0 ? "pos" : "neg"}">${this.money(net)}</b></div>
       </div>
-      ${y.projected ? `<p class="muted small">ⓘ ${esc(t.yd_proj)}</p>` : ""}${mbars}${rules}${exl}`;
+      ${y.projected ? `<p class="muted small">ⓘ ${esc(t.yd_proj)}</p>` : ""}${mbars}${byProj}${rules}${exl}`;
   }
 
   _selectRoiYear(year) {
@@ -344,10 +432,10 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
   renderInvest() {
     const t = this.t, cur = esc(this.settings.currency || "");
     const P = this.projects;
-    if (!P.find((p) => p.id === this._proj)) this._proj = P[0]?.id;
-    const p = P.find((x) => x.id === this._proj);
-    const chips = `<div class="pchips">${P.map((x) => `<button class="pchip ${x.id === this._proj ? "on" : ""}" data-proj="${esc(x.id)}">${esc(x.name)}</button>`).join("")}
-      ${this.admin ? `<button class="pchip add" id="newproj">+ ${esc(t.new_proj)}</button>` : ""}${p && this.admin ? `<button class="pchip" id="editproj">✎ ${esc(t.edit_proj)}</button>` : ""}</div>`;
+    this._projValid();
+    const p = this._curProj(), all = this._proj === ALL_P;
+    const chips = `<div class="pchips">${P.length > 1 ? `<button class="pchip ${all ? "on" : ""}" data-proj="${ALL_P}">${esc(t.all)}</button>` : ""}${P.map((x) => `<button class="pchip ${x.id === this._proj ? "on" : ""}" data-proj="${esc(x.id)}">${esc(x.name)}</button>`).join("")}
+      ${this.admin ? `<button class="pchip add" id="newproj">+ ${esc(t.new_proj)}</button>` : ""}${p && !all && this.admin ? `<button class="pchip" id="editproj">✎ ${esc(t.edit_proj)}</button>` : ""}</div>`;
     let body = "";
     if (!p) body = `<div class="card empty">${esc(this._data.projects === undefined ? t.need_restart : t.no_proj)}</div>`;
     else {
@@ -360,7 +448,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         const rules = (p.rules || []).map((ru) => {
           const tot = (r.rules || []).find((x) => x.id === ru.id) || {};
           const unit = ru.type === "qty" || !ru.type ? esc(this.unit(ru.medium)) : "";
-          return `<div class="rrow"><span class="rlbl"><span class="dot" style="background:${ru.type === "money" ? "var(--primary-color)" : this.color(ru.medium)}"></span>${esc(ru.label || t.types[ru.type || "qty"])}
+          return `<div class="rrow"><span class="rlbl"><span><span class="dot" style="background:${ru.type === "money" ? "var(--primary-color)" : this.color(ru.medium)}"></span>${esc(ru.label || t.types[ru.type || "qty"])}</span>
             ${unit ? `<small>${this.num(tot.qty, 0)} ${unit}${tot.est_qty ? ` · ${esc(t.incl_est.replace("{v}", this.num(tot.est_qty, 0)))}` : ""}</small>` : ""}</span>
             <b class="${tot.saved < 0 ? "neg" : ""}">${this.money(tot.saved)}</b></div>`;
         }).join("");

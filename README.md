@@ -90,6 +90,7 @@ A project has expenses and rules describing what it changes:
 | **Amount per year** | subsidy, insurance, service |
 
 Click a year in the payback chart to see its savings, expenses, balance and a monthly breakdown.
+With more than one project, **All** (selected by default) adds them up on one chart, stacked per project, with a combined payback month.
 Templates for **PV**, **heat pump instead of gas** and **electric car instead of fuel** get you started.
 Periods without meter data are estimated with a seasonal profile; you can add a yearly price growth.
 

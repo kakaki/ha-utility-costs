@@ -104,6 +104,9 @@ Projekt ma wydatki i reguły opisujące, co zmienia:
 - Wykres zwrotu jest klikalny: kliknij rok, żeby zobaczyć oszczędność i wydatki z tego roku, skumulowaną
   oszczędność wobec zainwestowanej kwoty, bilans, rozbicie na miesiące, sumy dla każdej reguły i wydatki
   zaksięgowane w tym roku. Wiersze tabeli lat też wybierają rok.
+- Przy kilku projektach przełącznik **Wszystkie** (pierwszy i domyślnie zaznaczony) sumuje je na jednym
+  wykresie: wydatki, oszczędności, wspólny miesiąc zwrotu i średnią roczną, a słupki oszczędności są podzielone
+  kolorami na projekty. Szczegóły roku pokazują podział na projekty i reguły, a lista wydatków – projekt każdego zakupu.
 - Szablony **Fotowoltaika**, **Pompa ciepła zamiast gazu** i **Auto elektryczne zamiast paliwa** pozwalają
   szybko zacząć.
 - Okresy bez danych z liczników są szacowane profilem sezonowym; można dodać roczny wzrost cen.

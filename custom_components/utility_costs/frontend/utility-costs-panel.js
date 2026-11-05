@@ -163,7 +163,7 @@ class UtilityCostsPanel extends HTMLElement {
         [t.f.value, (r) => `${this.num(r.value, 3)} ${esc(this.unit(r.medium))}`, "r"], [t.f.source, (r) => esc(r.source || "")], [t.f.note, (r) => esc(r.note || "")]];
       case "corrections": return [[t.f.medium, (r) => esc(this.mName(r.medium))], [t.f.month, (r) => esc(r.month)],
         [t.f.zone, (r) => esc(this.zName(r.medium, r.zone || "all"))], [t.f.qty, (r) => `${this.num(r.qty, 2)} ${esc(this.unit(r.medium))}`, "r"], [t.f.reason, (r) => esc(r.reason || "")]];
-      case "investments": return [[t.f.date, (r) => this.date(r.date)], [t.f.category, (r) => esc(t.cats[r.category] || r.category || "")],
+      case "investments": return [...(this._proj === "__all" ? [[t.proj, (r) => esc((this.projects.find((p) => p.id === r.project_id) || this.projects[0] || {}).name || "")]] : []), [t.f.date, (r) => this.date(r.date)], [t.f.category, (r) => esc(t.cats[r.category] || r.category || "")],
         [t.f.description, (r) => esc(r.description || "")], [t.f.comment, (r) => esc(r.comment || "")], [t.f.amount, (r) => this.money(r.amount), "r"]];
       case "suppliers": return [[t.f.medium, (r) => esc(this.mName(r.medium))], [t.f.name, (r) => esc(r.name)], [t.f.customer_no, (r) => esc(r.customer_no || "")], [t.f.tariff_group, (r) => esc(r.tariff_group || "")]];
       default: return [];
@@ -212,6 +212,7 @@ class UtilityCostsPanel extends HTMLElement {
         break;
       case "investments":
         title = esc(r.description || t.cats[r.category] || ""); sub = esc(t.cats[r.category] || r.category || "");
+        if (this._proj === "__all") sub = `${esc((this.projects.find((p) => p.id === r.project_id) || this.projects[0] || {}).name || "")} · ${sub}`;
         value = this.money(r.amount); chips.push(chip("📅 " + this.date(r.date))); note = r.comment || "";
         break;
       case "suppliers":
@@ -451,7 +452,7 @@ class UtilityCostsPanel extends HTMLElement {
   openDialog(col, item) {
     if (!item.medium && col !== "investments") item.medium = this._media[0] || this.media[0]?.id;
     if (col === "invoices" && !item.kind) item.kind = "settlement";
-    if (col === "investments" && !item.project_id && this._proj) item.project_id = this._proj;
+    if (col === "investments" && !item.project_id && this._proj) item.project_id = this._proj === "__all" ? this.projects[0]?.id : this._proj;
     this._dialog = { col, item };
     this._render();
   }
