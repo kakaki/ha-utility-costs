@@ -1,7 +1,7 @@
 /* Utility Costs – summary charts, export, table import, notifications, ROI cache info */
 const M = {
   en: {
-    chart_month: "Monthly cost", prev_year: "Previous year", vs_prev: "vs same period last year", forecast_y: "Year forecast",
+    tc_title: "Price history", tc_vs: "vs previous tariff", tc_first: "since the first tariff", tc_fixed: "Fixed fee / month", tc_until: "until now", tc_hint: "Tap a period to see the tariff", tc_cur: "current", tc_sup: "Supplier", tc_days: "{n} days", chart_month: "Monthly cost", md_total: "Total", md_prev: "Same month last year", md_inv: "Invoices covering this month", md_part: "data for {d} of {n} days", md_none: "No data for this month", md_hint: "Tap a month to see the details", prev_year: "Previous year", vs_prev: "vs same period last year", forecast_y: "Year forecast",
     export_x: "Excel", export_c: "CSV", import_t: "Import from Excel / CSV", import_b: "Import",
     imp_intro: "First row = column names (English, Polish or German). Required columns are bold. Dates: 2026-03-31, 31.03.2026 or Excel dates; amounts may use a comma (1 234,56 zł). Unknown suppliers are added automatically, duplicates are skipped.",
     imp_col: "Column", imp_desc: "Meaning", imp_ex: "Example", imp_tpl: "Download template", imp_file: "Choose file (.xlsx, .csv)",
@@ -21,7 +21,7 @@ const M = {
     roi_at: "Calculated", roi_cached: "Saved result – only the current month is recalculated",
   },
   pl: {
-    chart_month: "Koszt miesięczny", prev_year: "Poprzedni rok", vs_prev: "vs ten sam okres rok temu", forecast_y: "Prognoza roczna",
+    tc_title: "Historia cen", tc_vs: "vs poprzednia taryfa", tc_first: "od pierwszej taryfy", tc_fixed: "Opłata stała / mies.", tc_until: "do teraz", tc_hint: "Kliknij okres, aby zobaczyć taryfę", tc_cur: "obecna", tc_sup: "Sprzedawca", tc_days: "{n} dni", chart_month: "Koszt miesięczny", md_total: "Razem", md_prev: "Ten sam miesiąc rok temu", md_inv: "Faktury obejmujące ten miesiąc", md_part: "dane z {d} z {n} dni", md_none: "Brak danych za ten miesiąc", md_hint: "Kliknij miesiąc, aby zobaczyć szczegóły", prev_year: "Poprzedni rok", vs_prev: "vs ten sam okres rok temu", forecast_y: "Prognoza roczna",
     export_x: "Excel", export_c: "CSV", import_t: "Import z Excela / CSV", import_b: "Import",
     imp_intro: "Pierwszy wiersz = nazwy kolumn (po polsku, angielsku lub niemiecku). Wymagane kolumny są pogrubione. Daty: 2026-03-31, 31.03.2026 lub daty Excela; kwoty mogą mieć przecinek (1 234,56 zł). Nieznani dostawcy zostaną dodani, duplikaty pominięte.",
     imp_col: "Kolumna", imp_desc: "Znaczenie", imp_ex: "Przykład", imp_tpl: "Pobierz szablon", imp_file: "Wybierz plik (.xlsx, .csv)",
@@ -41,7 +41,7 @@ const M = {
     roi_at: "Przeliczono", roi_cached: "Zapisany wynik – przeliczany jest tylko bieżący miesiąc",
   },
   de: {
-    chart_month: "Monatliche Kosten", prev_year: "Vorjahr", vs_prev: "vs. gleicher Zeitraum Vorjahr", forecast_y: "Jahresprognose",
+    tc_title: "Preisverlauf", tc_vs: "vs. vorheriger Tarif", tc_first: "seit dem ersten Tarif", tc_fixed: "Grundgebühr / Monat", tc_until: "bis heute", tc_hint: "Zeitraum antippen für den Tarif", tc_cur: "aktuell", tc_sup: "Anbieter", tc_days: "{n} Tage", chart_month: "Monatliche Kosten", md_total: "Summe", md_prev: "Gleicher Monat im Vorjahr", md_inv: "Rechnungen für diesen Monat", md_part: "Daten für {d} von {n} Tagen", md_none: "Keine Daten für diesen Monat", md_hint: "Monat antippen für Details", prev_year: "Vorjahr", vs_prev: "vs. gleicher Zeitraum Vorjahr", forecast_y: "Jahresprognose",
     export_x: "Excel", export_c: "CSV", import_t: "Import aus Excel / CSV", import_b: "Import",
     imp_intro: "Erste Zeile = Spaltennamen (Deutsch, Englisch oder Polnisch). Pflichtspalten sind fett. Datum: 2026-03-31, 31.03.2026 oder Excel-Datum; Beträge mit Komma möglich (1.234,56 €). Unbekannte Anbieter werden angelegt, Duplikate übersprungen.",
     imp_col: "Spalte", imp_desc: "Bedeutung", imp_ex: "Beispiel", imp_tpl: "Vorlage herunterladen", imp_file: "Datei wählen (.xlsx, .csv)",
@@ -114,9 +114,186 @@ export const makeMore = ({ esc }) => class {
     const prevSum = have.reduce((a, m) => a + (m.prev ? tot(m.prev) * part(m) : 0), 0);
     const yoy = prevSum ? ((curSum - prevSum) / prevSum) * 100 : null;
     const yoyTxt = yoy === null ? "" : `<span class="yoy ${yoy > 0 ? "neg" : "pos"}">${yoy > 0 ? "▲" : "▼"} ${this.num(Math.abs(yoy), 1)}% <small>${esc(tm.vs_prev)} (${this.money(prevSum)})</small></span>`;
+    const sel = this._monSel(s, months, tot);
+    const hits = months.map((m, i) => `<rect x="${(i * bw).toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${H}" class="yhit${m.k === sel ? " on" : ""}" data-mon="${m.k}" tabindex="0" role="button" aria-label="${m.k}"><title>${esc(new Date(`2000-${m.k}-01T00:00:00`).toLocaleDateString(this.locale, { month: "long" }))}: ${this.money(m.cur ? tot(m.cur) : 0)}</title></rect>`).join("");
+    this._monCtx = { s, months, tot, cost };
     return `<div class="chart card schart"><div class="ctitle"><b>${esc(tm.chart_month)}</b>${yoyTxt}</div>
-      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">${bars}${line ? `<path d="${line}" class="pline"/>` : ""}${dots}</svg>
-      <div class="legend">${media.map((m) => `<span><i class="lg" style="background:${this.color(m.id)}"></i>${esc(this.mName(m.id))}</span>`).join("")}${line ? `<span><i class="lg pdl"></i>${esc(tm.prev_year)}</span>` : ""}</div></div>`;
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">${bars}${line ? `<path d="${line}" class="pline"/>` : ""}${dots}${hits}</svg>
+      <div class="legend">${media.map((m) => `<span><i class="lg" style="background:${this.color(m.id)}"></i>${esc(this.mName(m.id))}</span>`).join("")}${line ? `<span><i class="lg pdl"></i>${esc(tm.prev_year)}</span>` : ""}</div>
+      <div class="ydet mdet">${this.monthDetail(sel)}</div></div>`;
+  }
+
+  _monSel(s, months, tot) {
+    const keys = months.map((m) => m.k);
+    if (this._monYear !== s.year || !keys.includes(this._mon)) {
+      const now = new Date(), k = String(now.getMonth() + 1).padStart(2, "0");
+      const withData = months.filter((m) => m.cur && tot(m.cur)).map((m) => m.k);
+      this._mon = Number(s.year) === now.getFullYear() ? k : (withData[withData.length - 1] || "01");
+      this._monYear = s.year;
+    }
+    return this._mon;
+  }
+
+  monthDetail(k) {
+    const tm = this.tm, c = this._monCtx;
+    if (!c) return "";
+    const i = c.months.findIndex((m) => m.k === k), m = c.months[i];
+    if (!m) return `<p class="muted small">${esc(tm.md_hint)}</p>`;
+    const mk = `${c.s.year}-${k}`;
+    const title = new Date(`${mk}-01T00:00:00`).toLocaleDateString(this.locale, { month: "long", year: "numeric" });
+    const total = m.cur ? c.tot(m.cur) : 0, prevT = m.prev ? c.tot(m.prev) : 0;
+    const diff = prevT ? ((total - prevT) / prevT) * 100 : null;
+    const rows = this.media.map((md) => {
+      const x = m.cur?.media?.[md.id]; if (!x || !(x.cost || x.qty_total)) return "";
+      const px = m.prev?.media?.[md.id];
+      const part = x.days && x.data_days < x.days ? `<small>${esc(tm.md_part.replace("{d}", x.data_days).replace("{n}", x.days))}</small>` : "";
+      return `<div class="rrow"><span class="rlbl"><span><span class="dot" style="background:${this.color(md.id)}"></span>${esc(this.mName(md.id))}</span><small>${this.num(x.qty_total, 1)} ${esc(this.unit(md.id))}${px ? ` · ${esc(tm.prev_year)}: ${this.money(px.cost || 0)}` : ""}</small>${part}</span><b>${this.money(x.cost)}</b></div>`;
+    }).join("");
+    const a = `${mk}-01`, b = `${mk}-${String(new Date(Number(c.s.year), Number(k), 0).getDate()).padStart(2, "0")}`;
+    const inv = (c.s.invoices || []).filter((v) => (v.period_from || "") <= b && (v.period_to || v.period_from || "") >= a);
+    const invl = inv.length ? `<div class="ysub">${esc(tm.md_inv)} (${inv.length})</div>${inv.map((v) => `<div class="rrow"><span class="rlbl"><span><span class="dot" style="background:${this.color(v.medium)}"></span>${esc(this.mName(v.medium))}${v.number ? ` · ${esc(v.number)}` : ""}</span><small>${this.date(v.period_from)} – ${this.date(v.period_to)}</small></span><b>${this.money(v.amount)}</b></div>`).join("")}` : "";
+    return `<div class="yhead"><button type="button" class="yarr" data-mstep="-1" ${i <= 0 ? "disabled" : ""}>‹</button><b>${esc(title)}</b><small></small><button type="button" class="yarr" data-mstep="1" ${i >= 11 ? "disabled" : ""}>›</button></div>
+      <div class="ystats">
+        <div><span>${esc(tm.md_total)}</span><b>${this.money(total)}</b></div>
+        <div><span>${esc(tm.md_prev)}</span><b>${prevT ? this.money(prevT) : "–"}</b>${diff === null ? "" : `<small class="${diff > 0 ? "neg" : "pos"}">${diff > 0 ? "▲" : "▼"} ${this.num(Math.abs(diff), 1)}%</small>`}</div>
+      </div>
+      ${rows || `<p class="muted small">${esc(tm.md_none)}</p>`}${invl}`;
+  }
+
+  _selectMonth(k) {
+    this._mon = k;
+    const root = this.shadowRoot;
+    root.querySelectorAll("[data-mon]").forEach((el) => el.classList.toggle("on", el.dataset.mon === k));
+    const box = root.querySelector(".mdet");
+    if (box) { box.innerHTML = this.monthDetail(k); this._bindMonthDetail(); }
+  }
+
+  _bindMonthDetail() {
+    this.shadowRoot.querySelectorAll("[data-mstep]").forEach((b) => b.addEventListener("click", () => {
+      const n = Number(this._mon) + Number(b.dataset.mstep);
+      if (n >= 1 && n <= 12) this._selectMonth(String(n).padStart(2, "0"));
+    }));
+  }
+
+  /* tariff price history: one step chart per selected medium with more than one tariff */
+  tariffCharts(rows) {
+    if (!this._media.length) return "";
+    return this._media.map((mid) => {
+      const rs = rows.filter((r) => r.medium === mid && r.valid_from);
+      return rs.length > 1 ? this.tariffChart(mid, rs) : "";
+    }).join("");
+  }
+
+  _tarSegs(mid, rows) {
+    const rs = [...rows].sort((a, b) => String(a.valid_from).localeCompare(String(b.valid_from)));
+    const today = new Date().toISOString().slice(0, 10);
+    const day = (d) => Date.parse(`${d}T00:00:00Z`) / 864e5;
+    return rs.map((r, i) => {
+      const next = rs[i + 1]?.valid_from;
+      let end = r.valid_to ? String(r.valid_to) : (next || today);
+      if (next && next < end) end = next;
+      const a = day(r.valid_from), b = Math.max(day(end) + (r.valid_to && end === String(r.valid_to) ? 1 : 0), a + 1);
+      return { r, a, b, open: !r.valid_to && !next, i };
+    });
+  }
+
+  _tarColors(mid) {
+    const base = this.color(mid), extra = ["#8E6CC2", "#E0A53A", "#3A9BE0", "#D2557A"];
+    return this.zones(mid).map((z, i) => (i ? extra[(i - 1) % extra.length] : base));
+  }
+
+  tariffChart(mid, rows) {
+    const tm = this.tm, segs = this._tarSegs(mid, rows), zones = this.zones(mid), cols = this._tarColors(mid);
+    const W = 600, H = 170, pt = 10, pb = 4;
+    const t0 = segs[0].a, t1 = Math.max(...segs.map((s) => s.b), Date.now() / 864e5);
+    const vals = segs.flatMap((s) => zones.map((z) => Number(s.r.prices?.[z])).filter((v) => Number.isFinite(v) && v > 0));
+    if (!vals.length) return "";
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    const pad = (hi - lo) * 0.12 || hi * 0.1 || 1;
+    lo = Math.max(0, lo - pad); hi += pad;
+    const X = (d) => ((d - t0) / (t1 - t0 || 1)) * W, Y = (v) => pt + (H - pt - pb) * (1 - (v - lo) / (hi - lo));
+    let grid = "", xl = "";
+    const y0 = new Date(t0 * 864e5).getUTCFullYear(), y1 = new Date(t1 * 864e5).getUTCFullYear();
+    const ystep = Math.ceil((y1 - y0 + 1) / 8);
+    for (let y = y0; y <= y1 + 1; y++) {
+      const d = Date.UTC(y, 0, 1) / 864e5;
+      if (d < t0 || d > t1) continue;
+      const x = X(d).toFixed(1);
+      grid += `<line x1="${x}" x2="${x}" y1="${pt}" y2="${H - pb}" class="tgrid"/>`;
+      if ((y - y0) % ystep === 0) { const pc = (X(d) / W) * 100; xl += `<span style="left:${pc.toFixed(2)}%" class="${pc < 4 ? "l" : pc > 96 ? "r" : ""}">${y}</span>`; }
+    }
+    const lines = zones.map((z, zi) => {
+      let d = "", prev = null;
+      segs.forEach((s) => {
+        const v = Number(s.r.prices?.[z]);
+        if (!Number.isFinite(v) || v <= 0) { prev = null; return; }
+        const y = Y(v).toFixed(1);
+        d += `${prev !== null && Math.abs(prev.b - s.a) < 1.5 ? "L" : "M"}${X(s.a).toFixed(1)},${y} L${X(s.b).toFixed(1)},${y} `;
+        prev = s;
+      });
+      return d ? `<path d="${d}" class="tline" style="stroke:${cols[zi]}"/>` : "";
+    }).join("");
+    const sel = this._tarSel(mid, segs);
+    const hits = segs.map((s) => `<rect x="${X(s.a).toFixed(1)}" y="0" width="${Math.max(X(s.b) - X(s.a), 3).toFixed(1)}" height="${H - pb}" class="yhit${s.r.id === sel ? " on" : ""}" data-tar="${esc(s.r.id)}" data-tm="${esc(mid)}" tabindex="0" role="button" aria-label="${esc(s.r.name || s.r.valid_from)}"><title>${esc(s.r.name || "")} ${this.date(s.r.valid_from)}: ${zones.map((z) => this.num(Number(s.r.prices?.[z] || 0), 4)).join(" / ")}</title></rect>`).join("");
+    const unit = `${this.settings.currency || ""}/${this.unit(mid)}`;
+    return `<div class="chart card tchart" style="--mc:${this.color(mid)}"><div class="ctitle"><span class="dot" style="background:${this.color(mid)}"></span><b>${esc(tm.tc_title)} · ${esc(this.mName(mid))}</b><small class="muted">${esc(unit)}</small></div>
+      <div class="tplot"><div class="tyax"><span>${this.num(hi - pad, 2)}</span><span>${this.num(lo + (lo > 0 ? pad : 0), 2)}</span></div>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">${grid}${lines}${hits}</svg><div class="txax">${xl}</div></div>
+      ${zones.length > 1 ? `<div class="legend">${zones.map((z, i) => `<span><i class="lg" style="background:${cols[i]}"></i>${esc(this.zName(mid, z))}</span>`).join("")}</div>` : ""}
+      <div class="ydet tdet" data-tdet="${esc(mid)}">${this.tariffDetail(mid, sel)}</div></div>`;
+  }
+
+  _tarSel(mid, segs) {
+    this._tarPick = this._tarPick || {};
+    const ids = segs.map((s) => s.r.id);
+    if (!ids.includes(this._tarPick[mid])) {
+      const today = new Date().toISOString().slice(0, 10);
+      const cur = [...segs].reverse().find((s) => String(s.r.valid_from) <= today);
+      this._tarPick[mid] = (cur || segs[segs.length - 1]).r.id;
+    }
+    return this._tarPick[mid];
+  }
+
+  tariffDetail(mid, id) {
+    const tm = this.tm, t = this.t;
+    const rows = (this._data.tariffs || []).filter((r) => r.medium === mid && r.valid_from);
+    const segs = this._tarSegs(mid, rows), i = segs.findIndex((s) => s.r.id === id), s = segs[i];
+    if (!s) return `<p class="muted small">${esc(tm.tc_hint)}</p>`;
+    const r = s.r, prev = segs[i - 1]?.r, first = segs[0].r, zones = this.zones(mid), cols = this._tarColors(mid);
+    const pct = (a, b) => (Number(a) > 0 && Number(b) > 0 ? ((b - a) / a) * 100 : null);
+    const chg = (p) => (p === null ? "" : `<small class="${p > 0 ? "neg" : "pos"}">${p > 0 ? "▲" : p < 0 ? "▼" : "="} ${this.num(Math.abs(p), 1)}%</small>`);
+    const unit = `${this.settings.currency || ""}/${this.unit(mid)}`;
+    const sup = (this._data.suppliers || []).find((x) => x.id === r.supplier_id);
+    const to = s.open ? tm.tc_until : this.date(new Date((s.b - 1) * 864e5).toISOString().slice(0, 10));
+    const days = Math.round(s.b - s.a);
+    const zrows = zones.map((z, zi) => {
+      const v = Number(r.prices?.[z]);
+      if (!Number.isFinite(v)) return "";
+      const pv = pct(Number(prev?.prices?.[z]), v), pf = i > 0 ? pct(Number(first.prices?.[z]), v) : null;
+      return `<div><span>${zones.length > 1 ? `<i class="lg" style="background:${cols[zi]}"></i>${esc(this.zName(mid, z))}` : esc(unit)}</span><b>${this.num(v, 4)}</b>${prev ? chg(pv) : ""}${pf !== null && i > 1 ? `<small class="muted">${esc(tm.tc_first)}: ${pf > 0 ? "+" : ""}${this.num(pf, 1)}%</small>` : ""}</div>`;
+    }).join("");
+    const fx = Number(r.fixed_monthly);
+    return `<div class="yhead"><button type="button" class="yarr" data-tstep="-1" data-tm="${esc(mid)}" ${i <= 0 ? "disabled" : ""}>‹</button><b>${esc(r.name || this.mName(mid))}</b><small class="muted">${this.date(r.valid_from)} – ${esc(to)} · ${esc(tm.tc_days.replace("{n}", days))}${s.open ? ` · ${esc(tm.tc_cur)}` : ""}</small><button type="button" class="yarr" data-tstep="1" data-tm="${esc(mid)}" ${i >= segs.length - 1 ? "disabled" : ""}>›</button></div>
+      <div class="ystats">${zrows}${fx ? `<div><span>${esc(tm.tc_fixed)}</span><b>${this.money(fx)}</b>${prev && Number(prev.fixed_monthly) ? chg(pct(Number(prev.fixed_monthly), fx)) : ""}</div>` : ""}${sup ? `<div><span>${esc(tm.tc_sup)}</span><b class="small">${esc(sup.name)}</b></div>` : ""}</div>
+      ${prev ? `<p class="muted small">${esc(tm.tc_vs)}: ${esc(prev.name || "")} (${this.date(prev.valid_from)})</p>` : ""}${r.note ? `<p class="small">${esc(r.note)}</p>` : ""}`;
+  }
+
+  _selectTariff(mid, id) {
+    this._tarPick = this._tarPick || {};
+    this._tarPick[mid] = id;
+    const root = this.shadowRoot;
+    root.querySelectorAll(`[data-tar][data-tm="${mid}"]`).forEach((el) => el.classList.toggle("on", el.dataset.tar === id));
+    const box = [...root.querySelectorAll("[data-tdet]")].find((b) => b.dataset.tdet === mid);
+    if (box) { box.innerHTML = this.tariffDetail(mid, id); this._bindTariffDetail(box); }
+  }
+
+  _bindTariffDetail(scope) {
+    scope.querySelectorAll("[data-tstep]").forEach((b) => b.addEventListener("click", () => {
+      const mid = b.dataset.tm;
+      const segs = this._tarSegs(mid, (this._data.tariffs || []).filter((r) => r.medium === mid && r.valid_from));
+      const i = segs.findIndex((s) => s.r.id === this._tarPick?.[mid]) + Number(b.dataset.tstep);
+      if (i >= 0 && i < segs.length) this._selectTariff(mid, segs[i].r.id);
+    }));
   }
 
   exportBtns() {
@@ -200,6 +377,20 @@ export const makeMore = ({ esc }) => class {
 
   _bindMore() {
     const root = this.shadowRoot, $ = (s) => root.querySelector(s);
+    root.querySelectorAll("[data-tar]").forEach((el) => {
+      const go = () => this._selectTariff(el.dataset.tm, el.dataset.tar);
+      el.addEventListener("click", go);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+      if (window.matchMedia("(hover: hover)").matches) el.addEventListener("mouseenter", go);
+    });
+    this._bindTariffDetail(root);
+    root.querySelectorAll("[data-mon]").forEach((el) => {
+      const go = () => this._selectMonth(el.dataset.mon);
+      el.addEventListener("click", go);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+      el.addEventListener("mouseenter", () => { if (window.matchMedia("(hover: hover)").matches) go(); });
+    });
+    this._bindMonthDetail();
     root.querySelectorAll("[data-exp]").forEach((b) => b.addEventListener("click", () => {
       const f = b.dataset.exp, y = Number(this._year);
       const sheet = this._tab === "summary" ? "summary" : this._tab;

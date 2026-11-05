@@ -27,7 +27,7 @@ class UtilityCostsPanel extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this._tab = "summary";
     this._year = new Date().getFullYear();
-    this._medium = "";
+    this._media = [];
     this._data = null;
     this._summary = null;
     this._dialog = null;
@@ -247,15 +247,16 @@ class UtilityCostsPanel extends HTMLElement {
     for (let y = now + 1; y >= now - 10; y--) years.push(y);
     const yr = Number(this._year);
     const yearSel = `<span class="ystep"><button type="button" class="yarr" data-ystep="-1" ${yr <= years[years.length - 1] ? "disabled" : ""} aria-label="${esc(String(yr - 1))}">‹</button><select id="year">${years.map((y) => `<option ${y === yr ? "selected" : ""}>${y}</option>`).join("")}</select><button type="button" class="yarr" data-ystep="1" ${yr >= years[0] ? "disabled" : ""} aria-label="${esc(String(yr + 1))}">›</button></span>`;
-    const medSel = `<select id="medium"><option value="">${esc(t.all)}</option>${this.media.map((m) => `<option value="${esc(m.id)}" ${m.id === this._medium ? "selected" : ""}>${esc(this.mName(m.id))}</option>`).join("")}</select>`;
+    const mf = this._media.filter((id) => this.media.some((m) => m.id === id));
+    const medChips = this.media.length > 1 ? `<div class="pchips mchips" role="group" aria-label="${esc(t.f.medium)}"><button type="button" class="pchip ${!mf.length ? "on" : ""}" data-med="" aria-pressed="${!mf.length}">${esc(t.all)}</button>${this.media.map((m) => { const on = mf.includes(m.id); return `<button type="button" class="pchip mchip ${on ? "on" : ""}" data-med="${esc(m.id)}" aria-pressed="${on}" style="--mc:${this.color(m.id)}"><span class="dot"></span>${esc(this.mName(m.id))}</button>`; }).join("")}</div>` : "";
     let body = "";
     if (!this._data) body = `<p class="muted">${esc(t.loading)}</p>`;
     else if (this._tab === "summary") body = this.renderSummary();
     else if (this._tab === "settings") body = this.renderSettings();
     else if (this._tab === "investments") body = this.renderInvest();
     else body = this.renderList(this._tab);
-    const filters = this._tab === "settings" ? "" : `<div class="filters">${["tariffs", "suppliers", "investments"].includes(this._tab) ? "" : `<label>${esc(t.year)} ${yearSel}</label>`}${["summary", "investments"].includes(this._tab) ? "" : `<label>${esc(t.f.medium)} ${medSel}</label>`}
-      ${this._tab !== "summary" && this.admin ? `<button class="primary" id="add">+ ${esc(t.add)}</button>` : ""}${this.admin && this.importable(this._tab) ? `<button id="impbtn">⬆ ${esc(this.tm.import_b)}</button>` : ""}</div>`;
+    const filters = this._tab === "settings" ? "" : `<div class="filters">${["tariffs", "suppliers", "investments"].includes(this._tab) ? "" : `<label class="ylab">${esc(t.year)} ${yearSel}</label>`}
+      ${this._tab !== "summary" && this.admin ? `<button class="primary" id="add">+ ${esc(t.add)}</button>` : ""}${this.admin && this.importable(this._tab) ? `<button id="impbtn">⬆ ${esc(this.tm.import_b)}</button>` : ""}</div>${["summary", "investments"].includes(this._tab) ? "" : medChips}`;
     this.shadowRoot.innerHTML = `<style>${CSS}</style>
       <div class="toolbar"><ha-menu-button></ha-menu-button><div class="title">${esc(t.title)}</div></div>
       <div class="tabs">${tabs}</div>
@@ -270,12 +271,13 @@ class UtilityCostsPanel extends HTMLElement {
 
   renderList(col) {
     const t = this.t;
-    let rows = col === "investments" ? (this.projects.length ? this.projInvestments(this._proj) : this._data.investments || []) : (this._data[col] || []).filter((r) => !this._medium || r.medium === this._medium);
+    let rows = col === "investments" ? (this.projects.length ? this.projInvestments(this._proj) : this._data.investments || []) : (this._data[col] || []).filter((r) => !this._media.length || this._media.includes(r.medium));
     if (!["tariffs", "suppliers", "investments"].includes(col)) rows = rows.filter((r) => { const y = this.rowYear(col, r); return y === null || y === Number(this._year); });
     const key = { invoices: "period_to", installments: "period_from", tariffs: "valid_from", readings: "date", corrections: "month", suppliers: "name", investments: "date" }[col];
     rows.sort((a, b) => String(b[key] || "").localeCompare(String(a[key] || "")));
     if (!rows.length) return `<p class="muted">${esc(t.no_data)}</p>`;
     const cols = this.columns(col);
+    const tch = col === "tariffs" ? this.tariffCharts(rows) : "";
     let foot = "";
     if (col === "investments") {
       const sum = rows.reduce((s, r) => s + Number(r.amount || 0), 0);
@@ -287,7 +289,7 @@ class UtilityCostsPanel extends HTMLElement {
     }
     const sumAmt = ["invoices", "installments", "investments"].includes(col) ? rows.reduce((s, r) => s + Number(r.amount || 0), 0) : null;
     const cards = rows.map((r) => this.card(col, r)).join("");
-    return `<div class="tablewrap desk"><table><thead><tr>${cols.map((c) => `<th class="${c[2] || ""}">${esc(c[0])}</th>`).join("")}${this.admin ? "<th></th>" : ""}</tr></thead><tbody>
+    return `${tch}<div class="tablewrap desk"><table><thead><tr>${cols.map((c) => `<th class="${c[2] || ""}">${esc(c[0])}</th>`).join("")}${this.admin ? "<th></th>" : ""}</tr></thead><tbody>
       ${rows.map((r) => `<tr>${cols.map((c) => `<td class="${c[2] || ""}">${c[1](r)}</td>`).join("")}${this.admin ? `<td class="act"><button class="link" data-edit="${esc(r.id)}">${esc(t.edit)}</button><button class="link danger" data-del="${esc(r.id)}">${esc(t.del)}</button></td>` : ""}</tr>`).join("")}
       ${foot}</tbody></table></div>
       <div class="cards mob">${sumAmt !== null ? `<div class="tot"><span>${esc(t.total)} · ${rows.length}</span><b>${this.money(sumAmt)} ${esc(this.settings.currency || "")}</b></div>` : ""}${cards}</div>`;
@@ -403,7 +405,13 @@ class UtilityCostsPanel extends HTMLElement {
     const setYear = async (y) => { this._year = y; if (["summary", "invoices"].includes(this._tab)) await this._loadSummary(); this._render(); };
     $("#year")?.addEventListener("change", (e) => setYear(Number(e.target.value)));
     this.shadowRoot.querySelectorAll("[data-ystep]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); setYear(Number(this._year) + Number(b.dataset.ystep)); }));
-    $("#medium")?.addEventListener("change", (e) => { this._medium = e.target.value; this._render(); });
+    this.shadowRoot.querySelectorAll("[data-med]").forEach((b) => b.addEventListener("click", () => {
+      const id = b.dataset.med;
+      if (!id) this._media = [];
+      else this._media = this._media.includes(id) ? this._media.filter((x) => x !== id) : [...this._media, id];
+      if (this._media.length && this._media.length === this.media.length) this._media = [];
+      this._render();
+    }));
     $("#add")?.addEventListener("click", () => this.openDialog(this._tab, {}));
     $("#fab")?.addEventListener("click", () => this.openDialog(this._tab, {}));
     this.shadowRoot.querySelectorAll("[data-edit]").forEach((b) => b.addEventListener("click", () => {
@@ -441,7 +449,7 @@ class UtilityCostsPanel extends HTMLElement {
   }
 
   openDialog(col, item) {
-    if (!item.medium && col !== "investments") item.medium = this._medium || this.media[0]?.id;
+    if (!item.medium && col !== "investments") item.medium = this._media[0] || this.media[0]?.id;
     if (col === "invoices" && !item.kind) item.kind = "settlement";
     if (col === "investments" && !item.project_id && this._proj) item.project_id = this._proj;
     this._dialog = { col, item };

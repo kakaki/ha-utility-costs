@@ -43,6 +43,7 @@ your energy bills.
 ## 📊 Year summary
 
 Monthly cost from meters next to the invoiced amount and the settlement balance for every medium.
+Click a month in the chart to see the cost per medium, the same month last year and the invoices covering it.
 Results are calculated in the background and cached; only a year whose data changed is recalculated,
 the current month is kept up to date and a **Recalculate** button forces a full run.
 
@@ -57,6 +58,7 @@ the current month is kept up to date and a **Recalculate** button forces a full 
 - Attach the PDF or a photo: the editor shows it next to the form, the list marks invoices with 📎 and the number of files.
 - Instalments with due dates, a sensor for the next one.
 - Tariffs over time: unit price per zone, fixed monthly fee, extra charges per unit or per month.
+  Select a medium (chips above the list, several at once are allowed) to see a price-history chart; click a period for the details.
 - Corrections for periods when a meter was broken or replaced.
 
 <p align="center">
@@ -75,6 +77,7 @@ A project has expenses and rules describing what it changes:
 | **Fixed fee** avoided or added | gas connection fee you no longer pay |
 | **Amount per year** | subsidy, insurance, service |
 
+Click a year in the payback chart to see its savings, expenses, balance and a monthly breakdown.
 Templates for **PV**, **heat pump instead of gas** and **electric car instead of fuel** get you started.
 Periods without meter data are estimated with a seasonal profile; you can add a yearly price growth.
 

@@ -57,7 +57,7 @@ label.chk input { width:20px; height:20px; min-height:0; }
 .chips { display:flex; flex-wrap:wrap; gap:6px; }
 .chip { background: var(--secondary-background-color); border-radius:14px; padding:4px 10px; font-size:13px; }
 .ystep { display:flex; align-items:center; gap:4px; }
-.ystep select { min-width:88px; flex:1; }
+.ystep select { width:96px; min-width:0; flex:0 0 auto; }
 button.yarr { min-width:40px; width:40px; padding:0; font-size:20px; line-height:1; margin:0; flex:0 0 auto; }
 /* one control height everywhere controls sit side by side */
 .filters select, .filters button, .sumbar button, .exp button, .attact button, .attact .filebtn, .actions button, .tpl button, .row button {
@@ -142,6 +142,17 @@ button.ptab.on { border-color: var(--primary-color); color: var(--primary-color)
 .pchips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
 .pchip { border-radius:18px; min-height:36px; padding:6px 14px; }
 .pchip.on { background: var(--primary-color); border-color: var(--primary-color); color: var(--text-primary-color, #fff); }
+.mchips { margin:-6px 0 14px; }
+.pchip.mchip .dot { background: var(--mc); }
+.pchip.mchip.on { background: color-mix(in srgb, var(--mc) 30%, transparent); border-color: var(--mc); color: var(--primary-text-color); font-weight:500; box-shadow: inset 0 0 0 1px var(--mc); }
+.tchart .ctitle { display:flex; align-items:center; gap:6px; margin-bottom:6px; } .tchart .ctitle .dot { margin:0; }
+.txax { position:relative; height:18px; font-size:12px; color: var(--secondary-text-color); } .txax span { position:absolute; top:2px; transform:translateX(-50%); } .txax span.l { transform:none; } .txax span.r { transform:translateX(-100%); } .tchart .ctitle small { margin-left:auto; }
+.tplot { position:relative; } .tplot svg { height:170px; }
+.tyax { position:absolute; left:2px; top:2px; bottom:24px; display:flex; flex-direction:column; justify-content:space-between; font-size:11px; color: var(--secondary-text-color); pointer-events:none; }
+.tyax span { background: color-mix(in srgb, var(--card-background-color, #fff) 75%, transparent); padding:0 3px; border-radius:3px; }
+.chart .tline { fill:none; stroke-width:2.5; vector-effect: non-scaling-stroke; stroke-linejoin:round; }
+.chart .tgrid { stroke: var(--divider-color); stroke-width:1; vector-effect: non-scaling-stroke; }
+.ystats i.lg { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle; }
 .pchip.add { border-style:dashed; color: var(--primary-color); }
 .empty { padding:24px; text-align:center; color: var(--secondary-text-color); border-left-width:1px; }
 .kpi b.sm { font-size:17px; } .kpi b.sm small { font-size:12px; color: var(--secondary-text-color); font-weight:400; }
@@ -155,6 +166,21 @@ button.ptab.on { border-color: var(--primary-color); color: var(--primary-color)
 .chart .bsv { fill: var(--primary-color); } .chart .bok { fill: var(--success-color, #4FB477); } .chart .proj { opacity:.4; }
 .chart .inv { fill:none; stroke: var(--error-color, #E0643A); stroke-width:2; stroke-dasharray:6 4; }
 .chart .nowcol { fill: var(--secondary-background-color); }
+.chart .yhit { fill: transparent; cursor:pointer; outline:none; }
+.chart .yhit.on { fill: color-mix(in srgb, var(--primary-color) 14%, transparent); }
+.chart .yhit:focus-visible { fill: color-mix(in srgb, var(--primary-color) 22%, transparent); }
+.ydet { border-top:1px solid var(--divider-color); margin-top:8px; padding:10px 6px 2px; }
+.yhead { display:flex; align-items:center; gap:10px; margin-bottom:8px; } .yhead b { font-size:17px; font-weight:500; } .yhead .yarr { min-height:32px; height:32px; width:32px; min-width:32px; font-size:18px; }
+.yhead small { flex:1; }
+.ystats { display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:8px 14px; }
+.ystats div { display:flex; flex-direction:column; } .ystats span { font-size:12px; color: var(--secondary-text-color); } .ystats b { font-size:17px; font-weight:500; font-variant-numeric: tabular-nums; } .ystats small { font-size:11px; color: var(--secondary-text-color); }
+.ymon { display:flex; align-items:flex-end; gap:3px; margin:14px 0 4px; }
+.ym { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; min-width:0; }
+.ym i { display:block; width:72%; background: var(--success-color, #4FB477); border-radius:2px 2px 0 0; min-height:1px; } .ym i.neg { background: var(--error-color, #E0643A); } .ym.est i { opacity:.45; }
+.ym .yv { font-size:10px; color: var(--secondary-text-color); margin-bottom:2px; font-variant-numeric: tabular-nums; } .ym .yl { font-size:10px; line-height:14px; color: var(--secondary-text-color); margin-top:3px; white-space:nowrap; overflow:hidden; max-width:100%; }
+.ysub { font-size:13px; color: var(--secondary-text-color); margin:12px 0 2px; }
+.ydet .rrow { padding:7px 0; } .ydet .rlbl > span { display:flex; align-items:center; gap:4px; }
+table.yrs tr.yrow { cursor:pointer; } table.yrs tr.yrow.on td { background: color-mix(in srgb, var(--primary-color) 12%, transparent); }
 .legend { display:flex; flex-wrap:wrap; gap:12px; font-size:12px; color: var(--secondary-text-color); padding:6px 4px 0; }
 .lg { display:inline-block; width:12px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle; background: var(--primary-color); }
 .lg.proj { opacity:.4; } .lg.line { height:0; border-top:2px dashed var(--error-color, #E0643A); background:none; }
@@ -193,8 +219,12 @@ details.adv { margin-top:16px; } details.adv summary { cursor:pointer; color: va
   .tabs { padding:8px 12px; }
   #add { display:none; }
   .fab { display:block; }
-  .filters label { flex:1; }
-  .filters select { width:100%; }
+  .filters { gap:10px; }
+  .filters label { flex:1; min-width:0; }
+  .filters label.ylab { flex:0 0 auto; }
+  .ystep { gap:4px; }
+  .ystep select { width:84px; padding-left:8px; padding-right:4px; }
+  button.yarr { width:36px; min-width:36px; }
   .kpis { grid-template-columns: 1fr 1fr; gap:8px; }
   .kpi b { font-size:18px; }
   .backdrop { align-items:flex-end; }

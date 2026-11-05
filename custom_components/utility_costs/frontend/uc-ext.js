@@ -265,16 +265,80 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     const bars = ys.map((y, i) => {
       const x = i * bw + bw * 0.15, w = bw * 0.7, top = Y(y.cum_saved);
       const ok = y.cum_saved >= y.cum_invested && y.cum_invested > 0;
-      return `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${w.toFixed(1)}" height="${(H - pb2 - top).toFixed(1)}" rx="2" class="${ok ? "bok" : "bsv"} ${y.projected ? "proj" : ""}"><title>${y.year}: ${this.money(y.cum_saved)}</title></rect>
+      return `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${w.toFixed(1)}" height="${(H - pb2 - top).toFixed(1)}" rx="2" class="${ok ? "bok" : "bsv"} ${y.projected ? "proj" : ""} ybar" data-ybar="${y.year}"></rect>
         ${i % step === 0 || i === n - 1 ? `<text x="${(i * bw + bw / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle">${String(y.year).slice(2)}'</text>` : ""}`;
     }).join("");
     let path = "";
     ys.forEach((y, i) => { const yy = Y(y.cum_invested).toFixed(1); path += `${i ? "L" : "M"}${(i * bw).toFixed(1)},${yy} L${((i + 1) * bw).toFixed(1)},${yy} `; });
     const nowIdx = ys.findIndex((y) => y.year === now);
+    const sel = this._roiSel(r);
+    const hits = ys.map((y, i) => `<rect x="${(i * bw).toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${H}" class="yhit${y.year === sel ? " on" : ""}" data-yr="${y.year}" tabindex="0" role="button" aria-label="${y.year}"><title>${y.year}: ${esc(t.yd_saved)} ${this.money(y.saved)} · ${esc(t.yd_net)} ${this.money(y.cum_saved - y.cum_invested)}</title></rect>`).join("");
     return `<div class="chart card"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
       ${nowIdx >= 0 ? `<rect x="${(nowIdx * bw).toFixed(1)}" y="0" width="${bw.toFixed(1)}" height="${H - pb2}" class="nowcol"/>` : ""}
-      ${bars}<path d="${path}" class="inv"/></svg>
-      <div class="legend"><span><i class="lg bsv"></i>${esc(t.chart_cum)}</span><span><i class="lg proj bsv"></i>${esc(t.projected)}</span><span><i class="lg line"></i>${esc(t.chart_inv)}</span></div></div>`;
+      ${bars}<path d="${path}" class="inv"/>${hits}</svg>
+      <div class="legend"><span><i class="lg bsv"></i>${esc(t.chart_cum)}</span><span><i class="lg proj bsv"></i>${esc(t.projected)}</span><span><i class="lg line"></i>${esc(t.chart_inv)}</span></div>
+      <div class="ydet">${this.yearDetail(r, sel)}</div></div>`;
+  }
+
+  _roiSel(r) {
+    const years = (r.years || []).map((y) => y.year);
+    if (!years.includes(this._roiYear)) {
+      const now = new Date().getFullYear();
+      this._roiYear = years.includes(now) ? now : years[years.length - 1];
+    }
+    return this._roiYear;
+  }
+
+  yearDetail(r, year) {
+    const t = this.t;
+    const y = (r.years || []).find((x) => x.year === year);
+    if (!y) return `<p class="muted small">${esc(t.yd_hint)}</p>`;
+    const yrs = r.years.map((x) => x.year), i = yrs.indexOf(year);
+    const p = this.projects.find((x) => x.id === this._proj) || {};
+    const net = y.cum_saved - y.cum_invested;
+    const months = (r.months || []).filter((m) => m.month.startsWith(`${year}-`));
+    const mx = Math.max(...months.map((m) => Math.abs(m.saved || 0)), 1);
+    const mbars = months.length ? `<div class="ymon">${months.map((m) => {
+      const h = Math.round(Math.abs(m.saved || 0) / mx * 100);
+      const lbl = new Date(m.month + "-01T00:00:00").toLocaleDateString(this.locale, { month: "short" });
+      const parts = Object.entries(m.rules || {}).map(([id, v]) => { const ru = (p.rules || []).find((q) => q.id === id) || {}; return `${ru.label || id}: ${this.money(v.saved)}`; }).join("\n");
+      return `<div class="ym${m.estimated ? " est" : ""}" title="${esc(this.monthName(m.month))}: ${this.money(m.saved)}${parts ? "\n" + esc(parts) : ""}"><span class="yv">${this.num(m.saved, 0)}</span><i class="${(m.saved || 0) < 0 ? "neg" : ""}" style="height:${Math.max(1, Math.round(h * 0.64))}px"></i><span class="yl">${esc(lbl)}</span></div>`;
+    }).join("")}</div>` : "";
+    const per = {};
+    months.forEach((m) => Object.entries(m.rules || {}).forEach(([id, v]) => { const a = per[id] = per[id] || { qty: 0, saved: 0 }; a.qty += v.qty || 0; a.saved += v.saved || 0; }));
+    const rules = Object.keys(per).length ? `<div class="ysub">${esc(t.yd_rules)}</div>${(p.rules || []).filter((ru) => per[ru.id]).map((ru) => {
+      const unit = ru.type === "qty" || !ru.type ? esc(this.unit(ru.medium)) : "";
+      return `<div class="rrow"><span class="rlbl"><span><span class="dot" style="background:${ru.type === "money" ? "var(--primary-color)" : this.color(ru.medium)}"></span>${esc(ru.label || t.types[ru.type || "qty"])}</span>${unit ? `<small>${this.num(per[ru.id].qty, 0)} ${unit}</small>` : ""}</span><b class="${per[ru.id].saved < 0 ? "neg" : ""}">${this.money(per[ru.id].saved)}</b></div>`;
+    }).join("")}` : "";
+    const ex = this.projInvestments(this._proj).filter((e) => String(e.date || "").startsWith(`${year}-`)).sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount));
+    const exl = ex.length ? `<div class="ysub">${esc(t.yd_exp)} (${ex.length})</div>${ex.slice(0, 6).map((e) => `<div class="rrow"><span class="rlbl"><span>${esc(e.description || t.cats[e.category] || "")}</span><small>${this.date(e.date)}</small></span><b class="${e.amount < 0 ? "pos" : ""}">${this.money(e.amount)}</b></div>`).join("")}${ex.length > 6 ? `<p class="muted small">${esc(t.yd_more.replace("{n}", ex.length - 6))}</p>` : ""}` : "";
+    return `<div class="yhead"><button type="button" class="yarr" data-ystep2="-1" ${i <= 0 ? "disabled" : ""}>‹</button><b>${year}${y.partial ? " …" : ""}</b>${y.projected ? `<small class="muted">${esc(t.projected)}</small>` : ""}<button type="button" class="yarr" data-ystep2="1" ${i >= yrs.length - 1 ? "disabled" : ""}>›</button></div>
+      <div class="ystats">
+        <div><span>${esc(t.yd_saved)}</span><b class="${y.saved < 0 ? "neg" : ""}">${this.money(y.saved)}</b></div>
+        <div><span>${esc(t.yd_inv)}</span><b class="${y.invested > 0 ? "neg" : y.invested < 0 ? "pos" : ""}">${this.money(y.invested)}</b></div>
+        <div><span>${esc(t.yd_cum)}</span><b>${this.money(y.cum_saved)}</b><small>/ ${this.money(y.cum_invested)}</small></div>
+        <div><span>${esc(t.yd_net)}</span><b class="${net >= 0 ? "pos" : "neg"}">${this.money(net)}</b></div>
+      </div>
+      ${y.projected ? `<p class="muted small">ⓘ ${esc(t.yd_proj)}</p>` : ""}${mbars}${rules}${exl}`;
+  }
+
+  _selectRoiYear(year) {
+    const r = this._roi?.[this._proj];
+    if (!r) return;
+    this._roiYear = year;
+    const root = this.shadowRoot;
+    root.querySelectorAll(".yhit").forEach((el) => el.classList.toggle("on", Number(el.dataset.yr) === year));
+    root.querySelectorAll("tr[data-yrow]").forEach((el) => el.classList.toggle("on", Number(el.dataset.yrow) === year));
+    const box = root.querySelector(".ydet");
+    if (box) { box.innerHTML = this.yearDetail(r, year); this._bindYearDetail(); }
+  }
+
+  _bindYearDetail() {
+    this.shadowRoot.querySelectorAll("[data-ystep2]").forEach((b) => b.addEventListener("click", () => {
+      const r = this._roi?.[this._proj]; if (!r) return;
+      const yrs = r.years.map((x) => x.year), i = yrs.indexOf(this._roiYear) + Number(b.dataset.ystep2);
+      if (i >= 0 && i < yrs.length) this._selectRoiYear(yrs[i]);
+    }));
   }
 
   renderInvest() {
@@ -302,7 +366,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         }).join("");
         const nowY = new Date().getFullYear();
         const yrs = r.years.filter((y) => !y.projected || y.year <= Math.max(nowY + 2, r.payback ? Number(r.payback.month.slice(0, 4)) : 0)).map((y) =>
-          `<tr class="${y.projected ? "projrow" : ""}"><td>${y.year}${y.partial ? " …" : ""}${y.projected ? `<small class="muted">${esc(t.projected)}</small>` : ""}${y.invested ? `<small class="neg">−${this.money(y.invested)}</small>` : ""}</td>
+          `<tr class="${y.projected ? "projrow" : ""} yrow${y.year === this._roiYear ? " on" : ""}" data-yrow="${y.year}"><td>${y.year}${y.partial ? " …" : ""}${y.projected ? `<small class="muted">${esc(t.projected)}</small>` : ""}${y.invested ? `<small class="neg">−${this.money(y.invested)}</small>` : ""}</td>
            <td class="r">${this.money(y.saved)}</td>
            <td class="r ${y.cum_saved >= y.cum_invested ? "pos" : "neg"}">${this.money(y.cum_saved - y.cum_invested)}</td></tr>`).join("");
         body = `${this.roiMeta(r)}<div class="kpis">
@@ -439,6 +503,17 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
   _bindInvest() {
     const $ = (s) => this.shadowRoot.querySelector(s);
     this.shadowRoot.querySelectorAll("[data-proj]").forEach((b) => b.addEventListener("click", async () => { this._proj = b.dataset.proj; this._render(); await this._loadRoi(); this._render(); }));
+    this.shadowRoot.querySelectorAll(".yhit").forEach((el) => {
+      const go = () => this._selectRoiYear(Number(el.dataset.yr));
+      el.addEventListener("click", go);
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+      el.addEventListener("mouseenter", () => { if (window.matchMedia("(hover: hover)").matches) go(); });
+    });
+    this.shadowRoot.querySelectorAll("tr[data-yrow]").forEach((el) => el.addEventListener("click", () => {
+      this._selectRoiYear(Number(el.dataset.yrow));
+      this.shadowRoot.querySelector(".chart")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }));
+    this._bindYearDetail();
     $("#newproj")?.addEventListener("click", () => { this._pd = { obj: { horizon_years: 25, growth_pct: 0, rules: [] } }; this._render(); });
     $("#editproj")?.addEventListener("click", () => { const p = this.projects.find((x) => x.id === this._proj); this._pd = { obj: JSON.parse(JSON.stringify(p)) }; this._render(); });
     if (!this._pd) return;
