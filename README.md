@@ -42,6 +42,7 @@ your energy bills.
 - 🔔 **Notifications** – instalment reminders and alerts when an invoice differs from your meters.
 - 🃏 **Dashboard card** – this month's cost and a forecast for the whole year.
 - 📱 **Mobile-first panel** – cards, bottom-sheet editors, a settings wizard. No YAML, no JSON.
+  Tabs you do not use (e.g. Instalments or Investments) can be hidden in Settings.
 - 🔒 **Local** – everything is stored in your Home Assistant.
 
 ## 📊 Year summary

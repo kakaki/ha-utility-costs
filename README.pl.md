@@ -42,6 +42,7 @@ miesięczny koszt każdego medium i wylicza zwrot inwestycji, które zmieniają 
 - 🔔 **Powiadomienia** – przypomnienia o ratach i alerty, gdy faktura odbiega od liczników.
 - 🃏 **Karta na dashboard** – koszt bieżącego miesiąca i prognoza na cały rok.
 - 📱 **Panel projektowany pod telefon** – karty, edytory wysuwane od dołu, kreator ustawień. Bez YAML i JSON.
+  Nieużywane zakładki (np. Raty albo Inwestycje) można ukryć w Ustawieniach.
 - 🔒 **Lokalnie** – wszystko jest zapisywane w Twoim Home Assistant.
 
 ## 📊 Podsumowanie roku

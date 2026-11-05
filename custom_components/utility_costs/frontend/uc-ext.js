@@ -64,6 +64,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       <p class="muted hint">${esc(t.hint_src)}</p>
       <section class="card set"><div class="shead"><b>${esc(t.s_general)}</b></div><div class="grid"><label class="half">${esc(t.currency)}<input data-p="currency" value="${esc(w.currency || "")}" maxlength="3"></label>
         <label>${esc(t.ai_entity)}<select data-p="ai_entity"><option value="">${esc(t.ai_none)}</option>${Object.keys(this._hass?.states || {}).filter((e) => e.startsWith("ai_task.")).map((e) => `<option value="${esc(e)}" ${e === (w.ai_entity ?? Object.keys(this._hass.states).find((x) => x.startsWith("ai_task."))) ? "selected" : ""}>${esc(this.entName(e))}</option>`).join("")}</select></label></div></section>
+      ${this.tabsSection(w)}
       ${this.notifySection(w)}
       ${media}
       <button type="button" data-act="addmedium">${esc(t.add_medium)}</button>

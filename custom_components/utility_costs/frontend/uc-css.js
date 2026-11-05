@@ -153,6 +153,7 @@ button.ptab.on { border-color: var(--primary-color); color: var(--primary-color)
 .chart .tline { fill:none; stroke-width:2.5; vector-effect: non-scaling-stroke; stroke-linejoin:round; }
 .chart .tgrid { stroke: var(--divider-color); stroke-width:1; vector-effect: non-scaling-stroke; }
 .ystats i.lg { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:5px; vertical-align:middle; }
+.tabchks { display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:2px 12px; }
 .pchip.add { border-style:dashed; color: var(--primary-color); }
 .empty { padding:24px; text-align:center; color: var(--secondary-text-color); border-left-width:1px; }
 .kpi b.sm { font-size:17px; } .kpi b.sm small { font-size:12px; color: var(--secondary-text-color); font-weight:400; }

@@ -16,7 +16,7 @@ const M = {
       price: "unit price", price_day: "unit price day", price_night: "unit price night", fixed_monthly: "fixed fee per month", name: "tariff name",
       date: "purchase date", description: "what was bought", category: "panels, inverters, batteries, mounting, cabling, other", project: "project name (empty = current)", comment: "comment",
     },
-    n_h: "Notifications", n_on: "Send notifications", n_days: "Instalment reminder (days before)", n_dev: "Invoice vs meters alert from (%)", n_svc: "Also send via notify service",
+    tabs_h: "Tabs in the menu", tabs_hint: "Unticked tabs are hidden from the menu after saving. Their data and calculations stay.", n_h: "Notifications", n_on: "Send notifications", n_days: "Instalment reminder (days before)", n_dev: "Invoice vs meters alert from (%)", n_svc: "Also send via notify service",
     n_hint: "Notifications appear in Home Assistant; optionally also on your phone (e.g. notify.mobile_app_…).",
     roi_at: "Calculated", roi_cached: "Saved result – only the current month is recalculated",
   },
@@ -36,7 +36,7 @@ const M = {
       price: "cena jednostkowa", price_day: "cena strefa dzień", price_night: "cena strefa noc", fixed_monthly: "opłata stała miesięcznie", name: "nazwa taryfy",
       date: "data zakupu", description: "co kupiono", category: "panele, falowniki, baterie, montaż, okablowanie, inne", project: "nazwa projektu (puste = bieżący)", comment: "komentarz",
     },
-    n_h: "Powiadomienia", n_on: "Wysyłaj powiadomienia", n_days: "Przypomnienie o racie (dni przed)", n_dev: "Alert faktura vs liczniki od (%)", n_svc: "Wysyłaj też przez usługę notify",
+    tabs_h: "Zakładki w menu", tabs_hint: "Odznaczone zakładki znikną z menu po zapisaniu. Ich dane i obliczenia zostają.", n_h: "Powiadomienia", n_on: "Wysyłaj powiadomienia", n_days: "Przypomnienie o racie (dni przed)", n_dev: "Alert faktura vs liczniki od (%)", n_svc: "Wysyłaj też przez usługę notify",
     n_hint: "Powiadomienia pojawiają się w Home Assistant, opcjonalnie też na telefonie (np. notify.mobile_app_…).",
     roi_at: "Przeliczono", roi_cached: "Zapisany wynik – przeliczany jest tylko bieżący miesiąc",
   },
@@ -56,7 +56,7 @@ const M = {
       price: "Arbeitspreis", price_day: "Preis Tag", price_night: "Preis Nacht", fixed_monthly: "Grundgebühr pro Monat", name: "Tarifname",
       date: "Kaufdatum", description: "was gekauft wurde", category: "Module, Wechselrichter, Batterien, Montage, Verkabelung, Sonstiges", project: "Projektname (leer = aktuelles)", comment: "Kommentar",
     },
-    n_h: "Benachrichtigungen", n_on: "Benachrichtigungen senden", n_days: "Erinnerung an Abschlag (Tage vorher)", n_dev: "Warnung Rechnung vs. Zähler ab (%)", n_svc: "Zusätzlich über notify-Dienst",
+    tabs_h: "Registerkarten im Menü", tabs_hint: "Abgewählte Registerkarten werden nach dem Speichern ausgeblendet. Daten und Berechnungen bleiben erhalten.", n_h: "Benachrichtigungen", n_on: "Benachrichtigungen senden", n_days: "Erinnerung an Abschlag (Tage vorher)", n_dev: "Warnung Rechnung vs. Zähler ab (%)", n_svc: "Zusätzlich über notify-Dienst",
     n_hint: "Benachrichtigungen erscheinen in Home Assistant, optional auch auf dem Handy (z. B. notify.mobile_app_…).",
     roi_at: "Berechnet", roi_cached: "Gespeichertes Ergebnis – nur der aktuelle Monat wird neu berechnet",
   },
@@ -356,6 +356,14 @@ export const makeMore = ({ esc }) => class {
   }
 
   /* ---------- settings: notifications ---------- */
+  tabsSection(w) {
+    const tm = this.tm, hidden = w.hidden_tabs || [];
+    const opt = ["investments", "invoices", "installments", "tariffs", "readings", "corrections", "suppliers"];
+    return `<section class="card set"><div class="shead"><b>${esc(tm.tabs_h)}</b></div>
+      <div class="tabchks">${opt.map((k) => `<label class="chk"><input type="checkbox" data-tabchk="${k}" ${hidden.includes(k) ? "" : "checked"}> ${esc(this.t.tabs[k])}</label>`).join("")}</div>
+      <p class="muted small">${esc(tm.tabs_hint)}</p></section>`;
+  }
+
   notifySection(w) {
     const tm = this.tm, n = w.notifications || {};
     const svcs = Object.keys(this._hass?.services?.notify || {}).map((s) => `notify.${s}`);
@@ -405,6 +413,11 @@ export const makeMore = ({ esc }) => class {
     $("#impcheck")?.addEventListener("click", () => this._impSend(false));
     $("#impsave")?.addEventListener("click", () => this._impSend(true));
     $("#roirecalc")?.addEventListener("click", async () => { this._roiBusy = true; this._render(); await this._loadRoi(true); this._roiBusy = false; this._render(); });
+    root.querySelectorAll("[data-tabchk]").forEach((c) => c.addEventListener("change", () => {
+      const w = this._workSettings(), k = c.dataset.tabchk;
+      w.hidden_tabs = (w.hidden_tabs || []).filter((x) => x !== k);
+      if (!c.checked) w.hidden_tabs.push(k);
+    }));
     root.querySelectorAll("[data-nchk]").forEach((c) => c.addEventListener("change", () => {
       const w = this._workSettings(); w.notifications = w.notifications || {}; w.notifications[c.dataset.nchk] = c.checked;
     }));

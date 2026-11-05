@@ -4,6 +4,8 @@
  * module is passed on to the others for cache busting.
  */
 const V = new URL(import.meta.url).search;
+const TAB_ORDER = ["summary", "investments", "invoices", "installments", "tariffs", "readings", "corrections", "suppliers", "settings"];
+const OPTIONAL_TABS = TAB_ORDER.filter((k) => !["summary", "settings"].includes(k));
 const [{ I18N }, { CSS }, { makeExt }, { makeMore }] = await Promise.all([
   import(`./uc-i18n.js${V}`), import(`./uc-css.js${V}`), import(`./uc-ext.js${V}`), import(`./uc-more.js${V}`),
 ]);
@@ -242,7 +244,9 @@ class UtilityCostsPanel extends HTMLElement {
   /* ---------- render ---------- */
   _render() {
     const t = this.t;
-    const tabs = Object.keys(t.tabs).map((k) => `<button class="tab ${k === this._tab ? "on" : ""}" data-tab="${k}">${esc(t.tabs[k])}</button>`).join("");
+    const vis = this.visibleTabs();
+    if (!vis.includes(this._tab)) this._tab = "summary";
+    const tabs = vis.map((k) => `<button class="tab ${k === this._tab ? "on" : ""}" data-tab="${k}">${esc(t.tabs[k])}</button>`).join("");
     const years = [];
     const now = new Date().getFullYear();
     for (let y = now + 1; y >= now - 10; y--) years.push(y);
@@ -268,6 +272,12 @@ class UtilityCostsPanel extends HTMLElement {
     if (mb) { mb.hass = this._hass; mb.narrow = this._narrow; }
     this._bind();
     this.shadowRoot.querySelector(".tab.on")?.scrollIntoView({ block: "nearest", inline: "center" });
+  }
+
+  /* tab order: investments right after the summary; optional tabs can be hidden in settings */
+  visibleTabs() {
+    const hidden = this.settings?.hidden_tabs || [];
+    return TAB_ORDER.filter((k) => this.t.tabs[k] && (!OPTIONAL_TABS.includes(k) || !hidden.includes(k)));
   }
 
   renderList(col) {
