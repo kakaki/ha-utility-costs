@@ -5,7 +5,8 @@
 - Tariffs tab: when a medium is selected and it has more than one tariff, a price-history chart shows the unit price per zone over time. Click (or hover / keyboard) a period to see that tariff: prices with the change against the previous tariff and the first one, fixed fee, supplier and note; ‹ › steps through the tariffs.
 - Monthly cost chart on the summary tab is interactive: click (or hover / keyboard) a month to see the cost and quantity per medium, the same month last year with the change, and the invoices covering that month. ‹ › steps through the months.
 - Fix: on phones the year selector with arrows overlapped the medium filter.
-- Investment payback chart is interactive: click (or hover / keyboard) a year to see that year's savings and expenses, cumulative savings vs. invested, the balance, a monthly breakdown, totals per rule and the expenses booked in that year. ‹ › steps through the years; rows of the year table select the year too.
+- Investment payback chart is interactive: click (or hover / keyboard) a year to see that year's savings and expenses, cumulative savings vs. invested, the balance, a monthly breakdown, totals per rule and the expenses booked in that year. ‹ › steps through the years; rows of the year table select the year too. The current year is marked *year to date*.
+- Full Polish documentation in [README.pl.md](README.pl.md) with Polish screenshots; all screenshots refreshed.
 
 ## 0.5.0
 - Invoice editor shows the attached PDF or photo next to the form (above it on phones, can be hidden); several files can be switched.

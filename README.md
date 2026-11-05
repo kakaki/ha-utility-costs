@@ -5,6 +5,10 @@
 </p>
 
 <p align="center">
+  <b>🇬🇧 English</b> · <a href="README.pl.md">🇵🇱 Polski</a>
+</p>
+
+<p align="center">
   <a href="https://hacs.xyz"><img src="https://img.shields.io/badge/HACS-Custom-41BDF5.svg" alt="HACS"></a>
   <a href="https://github.com/kakaki/ha-utility-costs/releases"><img src="https://img.shields.io/github/v/release/kakaki/ha-utility-costs" alt="Release"></a>
   <a href="https://github.com/kakaki/ha-utility-costs/actions/workflows/validate.yml"><img src="https://github.com/kakaki/ha-utility-costs/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
@@ -21,7 +25,7 @@ puts the two together: a register of invoices, tariffs and instalments that chec
 own meters, gives you a monthly cost for each medium, and works out the payback of investments that change
 your energy bills.
 
-> The screenshots show a fictional demo household. The panel follows your Home Assistant language and currency.
+> The screenshots show a fictional demo household. The panel follows your Home Assistant language (English, Polish, German) and currency.
 
 ## ✨ Highlights
 
@@ -50,6 +54,11 @@ the current month is kept up to date and a **Recalculate** button forces a full 
 <p align="center">
   <img src="docs/images/d-summary.png" alt="Year summary on desktop" width="100%">
 </p>
+<p align="center">
+  <img src="docs/images/m-summary.png" alt="Summary on a phone" width="32%">
+  <img src="docs/images/m-summary2.png" alt="Details of the selected month" width="32%">
+  <img src="docs/images/card.png" alt="Dashboard card" width="32%">
+</p>
 
 ## 🧾 Invoices, instalments and tariffs
 
@@ -61,6 +70,9 @@ the current month is kept up to date and a **Recalculate** button forces a full 
   Select a medium (chips above the list, several at once are allowed) to see a price-history chart; click a period for the details.
 - Corrections for periods when a meter was broken or replaced.
 
+<p align="center">
+  <img src="docs/images/d-tariffs.png" alt="Electricity and gas price history on desktop" width="100%">
+</p>
 <p align="center">
   <img src="docs/images/m-invoices.png" alt="Invoice list" width="32%">
   <img src="docs/images/m-tariffs.png" alt="Tariffs" width="32%">
@@ -171,23 +183,7 @@ countries help to improve AI reading.
 
 ## 🇵🇱 Po polsku
 
-**Koszty mediów** to integracja Home Assistant do prowadzenia rejestru faktur, taryf i rat za prąd, gaz,
-wodę, paliwo i inne media.
-
-- **Faktury kontra liczniki** – każda faktura jest porównywana z odczytami liczników HA z tego samego okresu,
-  od razu widać zawyżone prognozy i awarie liczników.
-- **Rzeczywisty koszt miesięczny** – cena liczona według taryfy obowiązującej danego dnia, obsługa stref
-  dzień/noc (G12).
-- **Zwrot z inwestycji** – fotowoltaika, pompa ciepła zamiast gazu, auto elektryczne zamiast paliwa;
-  miesiąc zwrotu, wykres i prognoza.
-- **Odczyt faktur przez AI** – zdjęcie lub PDF, a encja `ai_task` uzupełnia formularz.
-- **Excel / CSV** – eksport roku, import faktur, rat, taryf i zakupów inwestycyjnych z arkusza (z szablonem i podglądem).
-- **Powiadomienia** o ratach i fakturach odbiegających od liczników, **karta na dashboard** z kosztem miesiąca i prognozą roczną.
-- **Panel na telefon**, kreator ustawień, bez edycji YAML/JSON.
-- Wszystkie dane zostają lokalnie w Home Assistant.
-
-Instalacja przez HACS jak wyżej. Po dodaniu integracji w menu bocznym pojawia się panel **„Koszty mediów”**.
-Język panelu (polski, angielski, niemiecki) i waluta są brane z ustawień Home Assistant.
+Pełny opis po polsku, z polskimi zrzutami ekranu: **[README.pl.md](README.pl.md)**.
 
 ## License
 

@@ -312,7 +312,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     }).join("")}` : "";
     const ex = this.projInvestments(this._proj).filter((e) => String(e.date || "").startsWith(`${year}-`)).sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount));
     const exl = ex.length ? `<div class="ysub">${esc(t.yd_exp)} (${ex.length})</div>${ex.slice(0, 6).map((e) => `<div class="rrow"><span class="rlbl"><span>${esc(e.description || t.cats[e.category] || "")}</span><small>${this.date(e.date)}</small></span><b class="${e.amount < 0 ? "pos" : ""}">${this.money(e.amount)}</b></div>`).join("")}${ex.length > 6 ? `<p class="muted small">${esc(t.yd_more.replace("{n}", ex.length - 6))}</p>` : ""}` : "";
-    return `<div class="yhead"><button type="button" class="yarr" data-ystep2="-1" ${i <= 0 ? "disabled" : ""}>‹</button><b>${year}${y.partial ? " …" : ""}</b>${y.projected ? `<small class="muted">${esc(t.projected)}</small>` : ""}<button type="button" class="yarr" data-ystep2="1" ${i >= yrs.length - 1 ? "disabled" : ""}>›</button></div>
+    return `<div class="yhead"><button type="button" class="yarr" data-ystep2="-1" ${i <= 0 ? "disabled" : ""}>‹</button><b>${year}</b>${y.projected ? `<small class="muted">${esc(t.projected)}</small>` : y.partial ? `<small class="muted">${esc(t.yd_partial)}</small>` : "<small></small>"}<button type="button" class="yarr" data-ystep2="1" ${i >= yrs.length - 1 ? "disabled" : ""}>›</button></div>
       <div class="ystats">
         <div><span>${esc(t.yd_saved)}</span><b class="${y.saved < 0 ? "neg" : ""}">${this.money(y.saved)}</b></div>
         <div><span>${esc(t.yd_inv)}</span><b class="${y.invested > 0 ? "neg" : y.invested < 0 ? "pos" : ""}">${this.money(y.invested)}</b></div>
