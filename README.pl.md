@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">🇬🇧 English</a> · <b>🇵🇱 Polski</b>
+  <a href="https://github.com/kakaki/ha-utility-costs/blob/main/README.md">🇬🇧 English</a> · <b>🇵🇱 Polski</b>
 </p>
 
 <p align="center">
@@ -13,11 +13,11 @@
   <a href="https://github.com/kakaki/ha-utility-costs/releases"><img src="https://img.shields.io/github/v/release/kakaki/ha-utility-costs" alt="Wydanie"></a>
   <a href="https://github.com/kakaki/ha-utility-costs/actions/workflows/validate.yml"><img src="https://github.com/kakaki/ha-utility-costs/actions/workflows/validate.yml/badge.svg" alt="Walidacja"></a>
   <img src="https://img.shields.io/badge/j%C4%99zyki-PL%20%7C%20EN%20%7C%20DE-informational" alt="Języki">
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/kakaki/ha-utility-costs" alt="Licencja"></a>
+  <a href="https://github.com/kakaki/ha-utility-costs/blob/main/LICENSE"><img src="https://img.shields.io/github/license/kakaki/ha-utility-costs" alt="Licencja"></a>
 </p>
 
 <p align="center">
-  <img src="docs/images/pl/hero.png" alt="Panel Koszty mediów na telefonie: podsumowanie, faktury, zwrot inwestycji i odczyt faktury przez AI" width="100%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/hero.png" alt="Panel Koszty mediów na telefonie: podsumowanie, faktury, zwrot inwestycji i odczyt faktury przez AI" width="100%">
 </p>
 
 Home Assistant wie, **ile** zużywasz. Twój sprzedawca wie, **ile to kosztuje**. Koszty mediów łączą jedno
@@ -59,12 +59,12 @@ Miesięczny koszt z liczników obok kwot z faktur i salda rozliczeń dla każdeg
   miesiąc jest aktualizowany na bieżąco, a przycisk **Przelicz** wymusza pełne przeliczenie.
 
 <p align="center">
-  <img src="docs/images/pl/d-summary.png" alt="Podsumowanie roku na komputerze" width="100%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/d-summary.png" alt="Podsumowanie roku na komputerze" width="100%">
 </p>
 <p align="center">
-  <img src="docs/images/pl/m-summary.png" alt="Podsumowanie na telefonie" width="32%">
-  <img src="docs/images/pl/m-summary2.png" alt="Szczegóły wybranego miesiąca" width="32%">
-  <img src="docs/images/pl/card.png" alt="Karta na dashboard" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/m-summary.png" alt="Podsumowanie na telefonie" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/m-summary2.png" alt="Szczegóły wybranego miesiąca" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/card.png" alt="Karta na dashboard" width="32%">
 </p>
 
 ## 🧾 Faktury, raty i taryfy
@@ -84,12 +84,12 @@ Miesięczny koszt z liczników obok kwot z faktur i salda rozliczeń dla każdeg
 - **Korekty** dla okresów, gdy licznik był zepsuty lub wymieniony.
 
 <p align="center">
-  <img src="docs/images/pl/d-tariffs.png" alt="Historia cen prądu i gazu na komputerze" width="100%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/d-tariffs.png" alt="Historia cen prądu i gazu na komputerze" width="100%">
 </p>
 <p align="center">
-  <img src="docs/images/pl/m-invoices.png" alt="Lista faktur" width="32%">
-  <img src="docs/images/pl/m-tariffs.png" alt="Taryfy" width="32%">
-  <img src="docs/images/pl/m-ai.png" alt="Faktura odczytana przez AI" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/m-invoices.png" alt="Lista faktur" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/m-tariffs.png" alt="Taryfy" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/m-ai.png" alt="Faktura odczytana przez AI" width="32%">
 </p>
 
 ## 💰 Inwestycje i zwrot
@@ -115,12 +115,12 @@ Projekt ma wydatki i reguły opisujące, co zmienia:
   7 l/100 km), a sesje z szybkich ładowarek dopisać jako wydatki.
 
 <p align="center">
-  <img src="docs/images/pl/d-investments.png" alt="Zwrot inwestycji na komputerze" width="100%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/d-investments.png" alt="Zwrot inwestycji na komputerze" width="100%">
 </p>
 <p align="center">
-  <img src="docs/images/pl/m-investments2.png" alt="Zwrot w kolejnych latach" width="32%">
-  <img src="docs/images/pl/m-project.png" alt="Edytor projektu" width="32%">
-  <img src="docs/images/pl/m-settings.png" alt="Kreator ustawień" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/m-investments2.png" alt="Zwrot w kolejnych latach" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/m-project.png" alt="Edytor projektu" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/m-settings.png" alt="Kreator ustawień" width="32%">
 </p>
 
 ## 📥 Import i eksport
@@ -148,7 +148,7 @@ show_media: true       # paski dla każdego medium
 show_year: true        # prognoza roczna i porównanie z poprzednim rokiem
 ```
 
-<p align="center"><img src="docs/images/pl/card.png" alt="Karta na dashboard" width="420"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/card.png" alt="Karta na dashboard" width="420"></p>
 
 ## 🔔 Powiadomienia
 
@@ -208,4 +208,4 @@ sprzedawców i z różnych krajów pomagają ulepszać odczyt przez AI.
 
 ## Licencja
 
-[MIT](LICENSE)
+[MIT](https://github.com/kakaki/ha-utility-costs/blob/main/LICENSE)

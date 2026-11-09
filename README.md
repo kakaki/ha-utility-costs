@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <b>🇬🇧 English</b> · <a href="README.pl.md">🇵🇱 Polski</a>
+  <b>🇬🇧 English</b> · <a href="https://github.com/kakaki/ha-utility-costs/blob/main/README.pl.md">🇵🇱 Polski</a>
 </p>
 
 <p align="center">
@@ -13,11 +13,11 @@
   <a href="https://github.com/kakaki/ha-utility-costs/releases"><img src="https://img.shields.io/github/v/release/kakaki/ha-utility-costs" alt="Release"></a>
   <a href="https://github.com/kakaki/ha-utility-costs/actions/workflows/validate.yml"><img src="https://github.com/kakaki/ha-utility-costs/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
   <img src="https://img.shields.io/badge/languages-EN%20%7C%20PL%20%7C%20DE-informational" alt="Languages">
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/kakaki/ha-utility-costs" alt="License"></a>
+  <a href="https://github.com/kakaki/ha-utility-costs/blob/main/LICENSE"><img src="https://img.shields.io/github/license/kakaki/ha-utility-costs" alt="License"></a>
 </p>
 
 <p align="center">
-  <img src="docs/images/hero.png" alt="Utility Costs panel on a phone: summary, invoices, investment payback and AI invoice reading" width="100%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/hero.png" alt="Utility Costs panel on a phone: summary, invoices, investment payback and AI invoice reading" width="100%">
 </p>
 
 Home Assistant already knows **how much** you use. Your supplier knows **how much it costs**. Utility Costs
@@ -53,12 +53,12 @@ Results are calculated in the background and cached; only a year whose data chan
 the current month is kept up to date and a **Recalculate** button forces a full run.
 
 <p align="center">
-  <img src="docs/images/d-summary.png" alt="Year summary on desktop" width="100%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/d-summary.png" alt="Year summary on desktop" width="100%">
 </p>
 <p align="center">
-  <img src="docs/images/m-summary.png" alt="Summary on a phone" width="32%">
-  <img src="docs/images/m-summary2.png" alt="Details of the selected month" width="32%">
-  <img src="docs/images/card.png" alt="Dashboard card" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/m-summary.png" alt="Summary on a phone" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/m-summary2.png" alt="Details of the selected month" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/card.png" alt="Dashboard card" width="32%">
 </p>
 
 ## 🧾 Invoices, instalments and tariffs
@@ -72,12 +72,12 @@ the current month is kept up to date and a **Recalculate** button forces a full 
 - Corrections for periods when a meter was broken or replaced.
 
 <p align="center">
-  <img src="docs/images/d-tariffs.png" alt="Electricity and gas price history on desktop" width="100%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/d-tariffs.png" alt="Electricity and gas price history on desktop" width="100%">
 </p>
 <p align="center">
-  <img src="docs/images/m-invoices.png" alt="Invoice list" width="32%">
-  <img src="docs/images/m-tariffs.png" alt="Tariffs" width="32%">
-  <img src="docs/images/m-ai.png" alt="Invoice read by AI" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/m-invoices.png" alt="Invoice list" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/m-tariffs.png" alt="Tariffs" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/m-ai.png" alt="Invoice read by AI" width="32%">
 </p>
 
 ## 💰 Investments and payback
@@ -96,12 +96,12 @@ Templates for **PV**, **heat pump instead of gas** and **electric car instead of
 Periods without meter data are estimated with a seasonal profile; you can add a yearly price growth.
 
 <p align="center">
-  <img src="docs/images/d-investments.png" alt="Investment payback on desktop" width="100%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/d-investments.png" alt="Investment payback on desktop" width="100%">
 </p>
 <p align="center">
-  <img src="docs/images/m-investments2.png" alt="Payback by year" width="32%">
-  <img src="docs/images/m-project.png" alt="Project editor" width="32%">
-  <img src="docs/images/m-settings.png" alt="Settings wizard" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/m-investments2.png" alt="Payback by year" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/m-project.png" alt="Project editor" width="32%">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/m-settings.png" alt="Settings wizard" width="32%">
 </p>
 
 ## 📥 Import and export
@@ -127,7 +127,7 @@ show_media: true       # bars per medium
 show_year: true        # year forecast and comparison with last year
 ```
 
-<p align="center"><img src="docs/images/card.png" alt="Dashboard card" width="420"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/card.png" alt="Dashboard card" width="420"></p>
 
 ## 🔔 Notifications
 
@@ -189,8 +189,8 @@ countries help to improve AI reading.
 
 ## 🇵🇱 Po polsku
 
-Pełny opis po polsku, z polskimi zrzutami ekranu: **[README.pl.md](README.pl.md)**.
+Pełny opis po polsku, z polskimi zrzutami ekranu: **[README.pl.md](https://github.com/kakaki/ha-utility-costs/blob/main/README.pl.md)**.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/kakaki/ha-utility-costs/blob/main/LICENSE)
