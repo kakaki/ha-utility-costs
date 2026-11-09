@@ -23,12 +23,14 @@ from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse, Supp
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
+from homeassistant.helpers.service import async_register_admin_service
 from homeassistant.helpers.event import async_track_time_change, async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
 from homeassistant.util import dt as dt_util
 
 from . import calc, export, files, websocket
+from .import_path import BadImportPath, read_import_file
 from .const import DOMAIN, PANEL_COMPONENT, PANEL_URL, SIGNAL_SUMMARY, SIGNAL_UPDATED, STATIC_URL, SUMMARY_CACHE_SECONDS
 from .notifier import Notifier
 from .roi_cache import RoiCache
@@ -211,11 +213,10 @@ def _register_services(hass: HomeAssistant) -> None:
     async def import_file(call: ServiceCall) -> ServiceResponse:
         rt = _rt(hass)
         rel = call.data["path"]
-        path = Path(hass.config.path(rel)).resolve()
-        if not str(path).startswith(str(Path(hass.config.config_dir).resolve())):
-            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="bad_path")
         try:
-            payload = await hass.async_add_executor_job(lambda: json.loads(path.read_text("utf-8")))
+            payload = await hass.async_add_executor_job(read_import_file, hass.config.config_dir, rel)
+        except BadImportPath as err:
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="bad_path") from err
         except (OSError, ValueError) as err:
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="bad_file", translation_placeholders={"error": str(err)}
@@ -240,7 +241,9 @@ def _register_services(hass: HomeAssistant) -> None:
         saved = await rt.store.async_upsert("invoices", item)
         return {"id": saved["id"]}
 
-    hass.services.async_register(
+    # every service reads or changes the whole register: admin users (and automations) only
+    async_register_admin_service(
+        hass,
         DOMAIN,
         "import_file",
         import_file,
@@ -250,8 +253,9 @@ def _register_services(hass: HomeAssistant) -> None:
         }),
         supports_response=SupportsResponse.OPTIONAL,
     )
-    hass.services.async_register(DOMAIN, "export", export, supports_response=SupportsResponse.ONLY)
-    hass.services.async_register(
+    async_register_admin_service(hass, DOMAIN, "export", export, supports_response=SupportsResponse.ONLY)
+    async_register_admin_service(
+        hass,
         DOMAIN,
         "add_invoice",
         add_invoice,

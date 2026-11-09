@@ -140,17 +140,21 @@ when the feature is first enabled.
 - Sensors per medium: current price per zone, fixed fee, last settlement, next instalment.
 - *Cost this month* and *Year forecast* (with per-medium attributes and last year for comparison).
 - Optional sync of current prices to existing `input_number` helpers (useful for the Energy dashboard).
-- Services: `utility_costs.add_invoice`, `utility_costs.import_file`, `utility_costs.export`.
+- Services (admin users and automations only): `utility_costs.add_invoice`, `utility_costs.import_file`
+  (JSON file inside the configuration folder), `utility_costs.export`.
 
 ## 📦 Installation
 
-### HACS (recommended)
+### Marketplace / HACS (recommended)
 
 [![Open your Home Assistant instance and open a repository inside HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=kakaki&repository=ha-utility-costs&category=integration)
 
-1. HACS → ⋮ → **Custom repositories** → `https://github.com/kakaki/ha-utility-costs`, type **Integration**.
-2. Install **Utility Costs** and restart Home Assistant.
-3. **Settings → Devices & services → Add integration → Utility Costs**.
+1. **Settings → Marketplace** (Home Assistant 2026.11+) or **HACS** on older versions: search for **Utility Costs** and install it.
+   On older HACS versions restart Home Assistant afterwards.
+2. **Settings → Devices & services → Add integration → Utility Costs**.
+
+If the search does not find it yet, add it as a custom repository: ⋮ → **Custom repositories** →
+`https://github.com/kakaki/ha-utility-costs`, type **Integration**, and install it from there.
 
 ### Manual
 

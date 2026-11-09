@@ -161,17 +161,21 @@ wysyłane raz; po pierwszym włączeniu istniejące faktury nie są zgłaszane.
 - Sensory dla każdego medium: aktualna cena w każdej strefie, opłata stała, ostatnie rozliczenie, następna rata.
 - *Koszt w tym miesiącu* i *Prognoza roczna* (z atrybutami dla każdego medium i poprzednim rokiem do porównania).
 - Opcjonalna synchronizacja aktualnych cen do istniejących pomocników `input_number` (przydatne w panelu Energia).
-- Usługi: `utility_costs.add_invoice`, `utility_costs.import_file`, `utility_costs.export`.
+- Usługi (tylko dla administratorów i automatyzacji): `utility_costs.add_invoice`, `utility_costs.import_file`
+  (plik JSON w folderze konfiguracji), `utility_costs.export`.
 
 ## 📦 Instalacja
 
-### HACS (zalecane)
+### Marketplace / HACS (zalecane)
 
 [![Otwórz swój Home Assistant i repozytorium w HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=kakaki&repository=ha-utility-costs&category=integration)
 
-1. HACS → ⋮ → **Niestandardowe repozytoria** → `https://github.com/kakaki/ha-utility-costs`, typ **Integracja**.
-2. Zainstaluj **Utility Costs** (w Home Assistant widoczne jako „Koszty mediów”) i uruchom ponownie Home Assistant.
-3. **Ustawienia → Urządzenia oraz usługi → Dodaj integrację → Koszty mediów**.
+1. **Ustawienia → Marketplace** (Home Assistant 2026.11+) albo **HACS** w starszych wersjach: wyszukaj **Utility Costs**
+   i zainstaluj. W starszym HACS uruchom potem ponownie Home Assistant.
+2. **Ustawienia → Urządzenia oraz usługi → Dodaj integrację → Koszty mediów**.
+
+Jeśli wyszukiwarka jeszcze go nie znajduje, dodaj go jako repozytorium niestandardowe: ⋮ → **Niestandardowe repozytoria** →
+`https://github.com/kakaki/ha-utility-costs`, typ **Integracja**, i zainstaluj stamtąd.
 
 ### Ręcznie
 

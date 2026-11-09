@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.1
+- Security: the `import_file`, `export` and `add_invoice` services are admin-only now (automations keep working). Non-admin users could read or replace the whole register through them.
+- `import_file` only reads files inside the configuration folder: the path is resolved (symlinks, `..`) and checked with `Path.is_relative_to`, so sibling folders such as `/config_backup` are rejected. Resolving and reading happen in the executor, not in the event loop.
+- README: installation leads with searching the Marketplace / HACS.
+
 ## 0.6.0
 - Investments tab moved right after the summary.
 - Settings → *Tabs in the menu*: every tab except Summary and Settings can be hidden (e.g. Instalments, Tariffs or Investments when you do not need them). Data and calculations are kept.
