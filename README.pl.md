@@ -117,6 +117,14 @@ Projekt ma wydatki i reguły opisujące, co zmienia:
   przeniesienie np. 85% ogrzewania na klimatyzatory – niespalony gaz minus prąd dla pomp, wyceniony taryfami
   z udziałem stref (np. głównie noc przy magazynie energii). Dni bez odczytu temperatury używają typowych
   temperatur miesięcznych, które można poprawić.
+- Gdy klimatyzatory zaczną naprawdę grzać, ustaw datę *Klimatyzatory grzeją od*: od tego dnia oszczędność jest
+  **mierzona** (model stopniodni wobec faktycznie spalonego gazu, prąd klimatyzatorów z liczników domu, także osobno dla pięter).
+- 📘 **Poradnik krok po kroku z pełnym przykładem (czujniki, YAML, pomocnicy, ustawienia):
+  [Symulacja pompy ciepła](https://github.com/kakaki/ha-utility-costs/blob/main/docs/pl/symulacja-pompy-ciepla.md)**
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/hp-sim.png" alt="Widok symulacji pompy ciepła" width="100%">
+</p>
 - Okresy bez danych z liczników są szacowane profilem sezonowym; można dodać roczny wzrost cen.
 - Dla auta elektrycznego można użyć licznika kilometrów i zużycia z komputera auta (np. 15 kWh/100 km zamiast
   7 l/100 km), a sesje z szybkich ładowarek dopisać jako wydatki.

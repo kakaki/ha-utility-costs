@@ -99,6 +99,14 @@ The heat pump template is a *what-if* simulation: with the heating part of gas (
 temperature sensor it shows what moving e.g. 85 % of the heating to your air conditioners would have saved, day by day
 (gas not burnt minus electricity for the pumps, priced with your tariffs and zone shares). Days without a temperature
 reading use typical monthly temperatures you can edit.
+Once the units really heat, set *Pumps heat since*: from that day the saving is **measured** (degree-day baseline vs. gas
+actually burnt, pump electricity from the house meters, optionally per floor).
+📘 **Step-by-step guide with a full example (sensors, YAML, helpers, settings):
+[Heat pump simulation](https://github.com/kakaki/ha-utility-costs/blob/main/docs/heat-pump-simulation.md)**
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/hp-sim.png" alt="Heat pump simulation view" width="100%">
+</p>
 Periods without meter data are estimated with a seasonal profile; you can add a yearly price growth.
 
 <p align="center">
