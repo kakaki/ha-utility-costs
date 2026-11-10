@@ -260,13 +260,13 @@ class UtilityCostsPanel extends HTMLElement {
     else if (this._tab === "settings") body = this.renderSettings();
     else if (this._tab === "investments") body = this.renderInvest();
     else body = this.renderList(this._tab);
-    const filters = this._tab === "settings" ? "" : `<div class="filters">${["tariffs", "suppliers", "investments"].includes(this._tab) ? "" : `<label class="ylab">${esc(t.year)} ${yearSel}</label>`}
+    const filters = ["settings", "investments"].includes(this._tab) ? "" : `<div class="filters">${["tariffs", "suppliers", "investments"].includes(this._tab) ? "" : `<label class="ylab">${esc(t.year)} ${yearSel}</label>`}
       ${this._tab !== "summary" && this.admin ? `<button class="primary" id="add">+ ${esc(t.add)}</button>` : ""}${this.admin && this.importable(this._tab) ? `<button id="impbtn">⬆ ${esc(this.tm.import_b)}</button>` : ""}</div>${["summary", "investments"].includes(this._tab) ? "" : medChips}`;
     this.shadowRoot.innerHTML = `<style>${CSS}</style>
       <div class="toolbar"><ha-menu-button></ha-menu-button><div class="title">${esc(t.title)}</div></div>
       <div class="tabs">${tabs}</div>
       <div class="content">${this._msg ? `<div class="msg">${esc(this._msg)}</div>` : ""}${!this.admin ? `<p class="muted">${esc(t.readonly)}</p>` : ""}${filters}${body}</div>
-      ${!["summary", "settings"].includes(this._tab) && this.admin && this._data ? `<button class="fab" id="fab" aria-label="${esc(t.add)}">+</button>` : ""}
+      ${!["summary", "settings", "investments"].includes(this._tab) && this.admin && this._data ? `<button class="fab" id="fab" aria-label="${esc(t.add)}">+</button>` : ""}
       ${this._dialog ? this.renderDialog() : ""}${this._pd ? this.renderProjDialog() : ""}${this._imp ? this.renderImport() : ""}`;
     const mb = this.shadowRoot.querySelector("ha-menu-button");
     if (mb) { mb.hass = this._hass; mb.narrow = this._narrow; }

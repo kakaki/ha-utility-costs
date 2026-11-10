@@ -531,7 +531,8 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
           <div class="tablewrap"><table class="yrs"><thead><tr><th>${esc(t.year_h)}</th><th class="r">${esc(t.saved_h)}</th><th class="r">${esc(t.net || "Bilans")}</th></tr></thead><tbody>${yrs}</tbody></table></div>`;
       }
     }
-    return `${chips}${body}<h3>${esc(t.expenses)}</h3>${this.renderList("investments")}`;
+    const tools = this.admin ? `<span class="exptools"><button class="primary small" id="add">+ ${esc(t.add_expense)}</button>${this.importable("investments") ? `<button class="small" id="impbtn">⬆ ${esc(this.tm.import_b)}</button>` : ""}</span>` : "";
+    return `${chips}${body}<div class="exphead"><h3>${esc(t.expenses)}</h3>${tools}</div>${this.renderList("investments")}`;
   }
 
   projTemplate(kind) {

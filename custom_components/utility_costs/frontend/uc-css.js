@@ -334,4 +334,8 @@ details.adv { margin-top:16px; } details.adv summary { cursor:pointer; color: va
   @media (max-width: 860px) { .simtop { grid-template-columns: minmax(0, 1fr); } }
   [data-simt] { margin-top: 14px; }
   table.simtab td, table.simtab th { white-space: nowrap; }
+  .exphead { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 22px; }
+  .exphead h3 { margin: 0; }
+  .exptools { display: flex; gap: 8px; }
+  .exptools button, .exptools #add { display: inline-flex; align-items: center; min-height: 36px; box-sizing: border-box; }
 `;

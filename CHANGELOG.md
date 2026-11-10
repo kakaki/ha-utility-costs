@@ -2,6 +2,7 @@
 
 ## 0.9.0
 - Investments: a project with a *Heat pump simulation* rule opens as a what-if view instead of the payback view: heating seasons (September–August) as chips, tiles with heating by gas today, gas + electricity with the pumps, the saving and the pump electricity, sliders for the share of heating, electricity in the cheaper tariff zone, extra losses, pump efficiency vs. catalogue and boiler efficiency (results update instantly; *Save to project* stores them), a month-by-month chart of the remaining gas and the pump electricity against the all-gas cost, a monthly table with the mean temperature, and the devices with the coldest-day power. The payback chart is still shown when the project has expenses.
+- Investments tab: the project chips are at the top; *Add expense* and *Import* moved to the *Expenses* section (they looked like "new project" before). No floating + button on this tab.
 - The ROI result of a heat pump rule carries per-month inputs at 100 % share (heating gas and its cost, replaceable gas, pump electricity and its cost per tariff zone, temperature, peak daily heat) so the view can rescale them.
 
 ## 0.8.1
