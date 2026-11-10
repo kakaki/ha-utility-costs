@@ -631,12 +631,42 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       <div class="actions">${o.id ? `<button type="button" class="danger" id="pddel">${esc(t.del_proj)}</button>` : ""}<span class="sp"></span><button type="button" id="pdcancel">${esc(t.cancel)}</button><button type="button" class="primary" id="pdsave">${esc(t.save)}</button></div></div></div>`;
   }
 
-  _rerenderKeep() {
+  /* scrolled ancestors of the panel (HA scrolls an inner container, not the window) */
+  _scrollers() {
+    const out = [];
+    let n = this;
+    while (n) {
+      n = n.parentNode || n.host;
+      if (n && n.nodeType === 1 && n.scrollHeight > n.clientHeight + 1) {
+        const o = getComputedStyle(n).overflowY;
+        if (o === "auto" || o === "scroll" || n === document.scrollingElement) out.push(n);
+      }
+      if (n === document) break;
+    }
+    if (document.scrollingElement && !out.includes(document.scrollingElement)) out.push(document.scrollingElement);
+    return out;
+  }
+
+  /* re-render and keep the view still: restore every scroller, then pin the edited field to the same screen position */
+  _rerenderKeep(anchor) {
     const b = this.shadowRoot.querySelector(".dbody"); const top = b ? b.scrollTop : 0;
+    const sc = this._scrollers().map((el) => [el, el.scrollTop]);
     const y = window.scrollY;
+    const sel = anchor?.dataset?.addto ? `[data-addto="${anchor.dataset.addto}"]` : null;
+    const ay = sel ? anchor.getBoundingClientRect().top : null;
+    if (sel) this.shadowRoot.activeElement?.blur?.(); // closes the mobile keyboard, so the viewport does not resize mid-render
     this._render();
     const nb = this.shadowRoot.querySelector(".dbody"); if (nb) nb.scrollTop = top;
+    sc.forEach(([el, t]) => { el.scrollTop = t; });
     window.scrollTo(0, y);
+    if (sel) {
+      const na = this.shadowRoot.querySelector(sel); if (!na) return;
+      const d = na.getBoundingClientRect().top - ay;
+      if (Math.abs(d) > 2) {
+        const s0 = nb && nb.contains(na) ? nb : (this._scrollers()[0] || document.scrollingElement);
+        s0.scrollTop += d;
+      }
+    }
   }
 
   _bindEdit() {
@@ -676,7 +706,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       const v = el.value.trim(); if (!v) return;
       const obj = target(el); const arr = getP(obj, el.dataset.addto) || [];
       if (!arr.includes(v)) arr.push(v);
-      setP(obj, el.dataset.addto, arr); this._rerenderKeep();
+      setP(obj, el.dataset.addto, arr); this._rerenderKeep(el);
     }));
     root.querySelectorAll("[data-act]").forEach((el) => el.addEventListener("click", () => {
       const obj = target(el), act = el.dataset.act;

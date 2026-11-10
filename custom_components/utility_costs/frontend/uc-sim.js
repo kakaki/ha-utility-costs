@@ -4,6 +4,10 @@
  * so the sliders here rescale them instantly without a round trip.
  */
 const S = {"pl": {"split_part": "symulacja: {s} · pomiar ({n} dni): {m}", "real_share": "faktyczny udział klimatyzatorów: {p}%", "real_wait": "faktyczny udział: za mało pełnych dni pomiaru", "pv_kpi": "w tym z PV: {v} kWh (bez zakupu)", "pv_col": "PV kWh: produkcja / dla klimatyzacji", "pv_tip": "Produkcja PV w miesiącu / ile z niej pokryło prąd klimatyzatorów (nadwyżka ponad zużycie domu)", "pv_note": "PV: prąd klimatyzatorów pokryty nadwyżką z PV (produkcja minus zużycie domu) nie jest kupowany.", "pv_ly": "produkcja PV z tego samego okresu rok wcześniej (brak danych z tego dnia)", "cmp_group_sub": "średnio {b} kWh/dobę (±{sd}) przed przejściem", "cmp_h": "Prąd klimatyzatorów: licznik domu a model", "cmp_meter": "Z licznika domu", "cmp_meter_sub": "{d} dni · nadwyżka ponad średnio {b} kWh/dobę (±{sd}) przed przejściem", "cmp_model": "Z modelu COP", "cmp_model_sub": "ciepło przejęte od pieca ÷ COP przy temperaturze dnia", "cmp_run": "Godziny w trybie grzania", "cmp_run_sub": "średnio {h} h na dobę (suma wszystkich klimatyzatorów)", "cmp_ratio": "Licznik pokazuje {p}% tego, co zakłada model. Wynik oszczędności liczy prąd z licznika.", "meas": "pomiar", "meas_days": "pomiar {n} dni", "l_meas": "pomiar (klimatyzatory naprawdę grzeją)", "meas_part": "w tym zmierzone: {v} · faktyczny udział {p}%", "meas_note": "pomiar: gaz bez klimatyzacji z modelu stopniodni minus gaz faktycznie spalony; % = faktyczny udział klimatyzatorów", "sliders_sim": "Od {d} wynik jest mierzony – suwaki zmieniają tylko miesiące symulowane (przed tą datą).", "season": "Sezon", "base": "Ogrzewanie gazem (dziś)", "after": "Z klimatyzacją: gaz + prąd", "save": "Oszczędność", "of_heating": "kosztu ogrzewania", "el": "Prąd dla klimatyzatorów", "ctrl": "Symulacja", "share": "Udział klimatyzatorów w ogrzewaniu", "share_hint": "Resztę ciepła daje piec. Ciepła woda zostaje na gazie.", "cheap": "Prąd w tańszej strefie ({z})", "cheap_hint": "Np. ok. 90%, gdy magazyn energii ładuje się w nocy; ok. 58% przy G12W bez magazynu.", "loss": "Dodatkowe straty prądu", "loss_hint": "Np. 6% na ładowanie i rozładowanie magazynu.", "cop": "Sprawność klimatyzatorów względem katalogu", "cop_hint": "100% = krzywa COP z SCOP urządzeń. Mniej = szron, wiatr, wysoka nastawa.", "eff": "Sprawność pieca gazowego", "eff_hint": "Wyższa sprawność = więcej ciepła z m³, więc klimatyzatory muszą dać go więcej.", "reset": "Przywróć z projektu", "store": "Zapisz w projekcie", "stored": "Zapisano ustawienia symulacji – wynik przeliczony", "chart": "Gaz i prąd miesiąc po miesiącu", "l_gas": "Gaz", "l_el": "Prąd", "l_base": "Dziś: wszystko gazem", "bar_top": "liczba nad słupkiem = oszczędność", "month": "Miesiąc", "temp": "Temp.", "gas_now": "Gaz dziś", "gas_after": "Gaz po", "el_kwh": "Prąd kWh", "el_cost": "Prąd", "total": "Razem", "devices": "Klimatyzatory", "dev_total": "Razem moc grzewcza", "down_to": "pracuje do {t} °C", "coldest": "Najzimniejsza doba sezonu: klimatyzatory dają średnio ok. {kw} kW.", "enough": "Moc wystarcza z zapasem – ograniczeniem jest raczej to, do których pomieszczeń dociera ciepło.", "short": "To blisko mocy urządzeń – w mrozy część ciepła zostanie na piecu.", "est": "miesiąc szacowany (brak danych gazu na ogrzewanie)", "tn": "temperatura typowa (brak odczytu czujnika)", "fixed": "Porównanie dotyczy tylko ogrzewania: opłata stała i gaz na ciepłą wodę zostają bez zmian.", "no_data": "Brak danych do symulacji – sprawdź licznik gazu na ogrzewanie w regule projektu."}, "en": {"split_part": "simulated: {s} · measured ({n} days): {m}", "real_share": "real share of the pumps: {p}%", "real_wait": "real share: not enough full measured days yet", "pv_kpi": "incl. from PV: {v} kWh (not bought)", "pv_col": "PV kWh: produced / for pumps", "pv_tip": "PV production in the month / part of it that covered the pumps (surplus over house use)", "pv_note": "PV: pump electricity covered by PV surplus (production minus house use) is not bought.", "pv_ly": "PV production of the same period a year earlier (no data for that day)", "cmp_group_sub": "average {b} kWh/day (±{sd}) before the switch", "cmp_h": "Pump electricity: house meter vs. model", "cmp_meter": "From the house meter", "cmp_meter_sub": "{d} days · above an average of {b} kWh/day (±{sd}) before the switch", "cmp_model": "From the COP model", "cmp_model_sub": "heat taken over from the boiler ÷ COP at the day's temperature", "cmp_run": "Hours in heating mode", "cmp_run_sub": "on average {h} h per day (all units together)", "cmp_ratio": "The meter shows {p}% of what the model expects. The saving uses the meter.", "meas": "measured", "meas_days": "measured {n} days", "l_meas": "measured (pumps really heat)", "meas_part": "incl. measured: {v} · real share {p}%", "meas_note": "measured: gas without pumps from the degree-day model minus gas actually burnt; % = real share of the pumps", "sliders_sim": "From {d} the result is measured – the sliders only change the simulated months (before that date).", "season": "Season", "base": "Heating with gas (today)", "after": "With heat pumps: gas + electricity", "save": "Saving", "of_heating": "of heating cost", "el": "Electricity for the pumps", "ctrl": "Simulation", "share": "Share of heating from the pumps", "share_hint": "The boiler gives the rest. Hot water stays on gas.", "cheap": "Electricity in the cheaper zone ({z})", "cheap_hint": "E.g. about 90% when a home battery charges at night.", "loss": "Extra electricity losses", "loss_hint": "E.g. 6% for charging and discharging a battery.", "cop": "Pump efficiency vs. catalogue", "cop_hint": "100% = COP curve from the devices' SCOP. Less = frost, wind, high set point.", "eff": "Gas boiler efficiency", "eff_hint": "Higher efficiency = more heat per unit of gas, so the pumps must give more.", "reset": "Reset to project", "store": "Save to project", "stored": "Simulation settings saved – result recalculated", "chart": "Gas and electricity month by month", "l_gas": "Gas", "l_el": "Electricity", "l_base": "Today: all gas", "bar_top": "number above a bar = saving", "month": "Month", "temp": "Temp.", "gas_now": "Gas today", "gas_after": "Gas after", "el_kwh": "Electricity kWh", "el_cost": "Electricity", "total": "Total", "devices": "Devices", "dev_total": "Total heat output", "down_to": "works down to {t} °C", "coldest": "Coldest day of the season: the pumps give about {kw} kW on average.", "enough": "Plenty of power – the limit is rather which rooms the heat reaches.", "short": "Close to the devices' power – in frost part of the heat stays on the boiler.", "est": "estimated month (no heating gas data)", "tn": "typical temperature (no sensor reading)", "fixed": "Only heating is compared: the fixed fee and gas for hot water stay the same.", "no_data": "No data to simulate – check the heating gas meter in the project rule."}, "de": {"split_part": "simuliert: {s} · gemessen ({n} Tage): {m}", "real_share": "echter Anteil der Pumpen: {p} %", "real_wait": "echter Anteil: noch zu wenige volle Messtage", "pv_kpi": "davon aus PV: {v} kWh (nicht gekauft)", "pv_col": "PV kWh: erzeugt / für Pumpen", "pv_tip": "PV-Erzeugung im Monat / Anteil, der die Pumpen deckte (Überschuss über Hausverbrauch)", "pv_note": "PV: Pumpenstrom aus PV-Überschuss (Erzeugung minus Hausverbrauch) wird nicht gekauft.", "pv_ly": "PV-Erzeugung desselben Zeitraums ein Jahr zuvor (keine Daten für den Tag)", "cmp_group_sub": "im Mittel {b} kWh/Tag (±{sd}) vor dem Umstieg", "cmp_h": "Pumpenstrom: Hauszähler vs. Modell", "cmp_meter": "Aus dem Hauszähler", "cmp_meter_sub": "{d} Tage · über dem Durchschnitt von {b} kWh/Tag (±{sd}) vor dem Umstieg", "cmp_model": "Aus dem COP-Modell", "cmp_model_sub": "vom Kessel übernommene Wärme ÷ COP bei der Tagestemperatur", "cmp_run": "Stunden im Heizmodus", "cmp_run_sub": "im Mittel {h} h pro Tag (alle Geräte)", "cmp_ratio": "Der Zähler zeigt {p} % dessen, was das Modell erwartet. Die Ersparnis nutzt den Zähler.", "meas": "gemessen", "meas_days": "{n} Tage gemessen", "l_meas": "gemessen (Pumpen heizen wirklich)", "meas_part": "davon gemessen: {v} · echter Anteil {p} %", "meas_note": "gemessen: Gas ohne Pumpen aus dem Gradtagsmodell minus tatsächlich verbranntes Gas; % = echter Anteil der Pumpen", "sliders_sim": "Ab {d} wird gemessen – die Regler ändern nur die simulierten Monate (davor).", "season": "Saison", "base": "Heizen mit Gas (heute)", "after": "Mit Wärmepumpen: Gas + Strom", "save": "Ersparnis", "of_heating": "der Heizkosten", "el": "Strom für die Pumpen", "ctrl": "Simulation", "share": "Anteil der Pumpen an der Heizung", "share_hint": "Den Rest liefert der Kessel. Warmwasser bleibt auf Gas.", "cheap": "Strom in der günstigeren Zone ({z})", "cheap_hint": "Z. B. etwa 90 %, wenn ein Heimspeicher nachts lädt.", "loss": "Zusätzliche Stromverluste", "loss_hint": "Z. B. 6 % für Laden und Entladen eines Speichers.", "cop": "Pumpen-Wirkungsgrad ggü. Katalog", "cop_hint": "100 % = COP-Kurve aus dem SCOP der Geräte. Weniger = Reif, Wind, hohe Solltemperatur.", "eff": "Wirkungsgrad des Gaskessels", "eff_hint": "Höherer Wirkungsgrad = mehr Wärme pro Gaseinheit, also müssen die Pumpen mehr liefern.", "reset": "Aus Projekt zurücksetzen", "store": "Im Projekt speichern", "stored": "Simulationseinstellungen gespeichert – neu berechnet", "chart": "Gas und Strom Monat für Monat", "l_gas": "Gas", "l_el": "Strom", "l_base": "Heute: alles mit Gas", "bar_top": "Zahl über dem Balken = Ersparnis", "month": "Monat", "temp": "Temp.", "gas_now": "Gas heute", "gas_after": "Gas danach", "el_kwh": "Strom kWh", "el_cost": "Strom", "total": "Summe", "devices": "Geräte", "dev_total": "Heizleistung gesamt", "down_to": "arbeitet bis {t} °C", "coldest": "Kältester Tag der Saison: die Pumpen liefern im Mittel etwa {kw} kW.", "enough": "Leistung reicht – begrenzend ist eher, welche Räume die Wärme erreicht.", "short": "Nahe an der Geräteleistung – bei Frost bleibt ein Teil der Wärme beim Kessel.", "est": "geschätzter Monat (keine Heizgas-Daten)", "tn": "typische Temperatur (kein Sensorwert)", "fixed": "Verglichen wird nur die Heizung: Grundgebühr und Gas für Warmwasser bleiben gleich.", "no_data": "Keine Daten für die Simulation – Heizgaszähler in der Projektregel prüfen."}};
+Object.assign(S.pl, { real_only: "Sezon od przełączenia ({d}) – tylko rzeczywiste dane, bez symulacji", real_only_note: "Ten sezon pokazuje tylko pomiar od {d}; dni wcześniej liczone jak dotąd (sam gaz). Suwaki zmieniają tylko poprzednie sezony.", vs_h: "Symulacja vs rzeczywistość", vs_sub: "symulacja z sezonu {s} dla tych samych miesięcy, przeliczona na liczbę dni pomiaru", vs_sim: "symulacja", vs_real: "pomiar", vs_wait: "Pomiar startuje {d} – porównanie pojawi się po pierwszych pełnych dniach.", vs_tot: "Razem" });
+Object.assign(S.en, { real_only: "Season from the switch ({d}) – real data only, no simulation", real_only_note: "This season shows only measurements from {d}; earlier days count as they were (gas only). Sliders change previous seasons only.", vs_h: "Simulation vs reality", vs_sub: "simulation of season {s} for the same months, scaled to the measured days", vs_sim: "simulated", vs_real: "measured", vs_wait: "Measuring starts {d} – the comparison appears after the first complete days.", vs_tot: "Total" });
+Object.assign(S.de, { real_only: "Saison ab Umstellung ({d}) – nur echte Daten, keine Simulation", real_only_note: "Diese Saison zeigt nur Messungen ab {d}; frühere Tage zählen wie bisher (nur Gas). Regler ändern nur frühere Saisons.", vs_h: "Simulation vs. Realität", vs_sub: "Simulation der Saison {s} für dieselben Monate, auf die Messtage umgerechnet", vs_sim: "simuliert", vs_real: "gemessen", vs_wait: "Messung beginnt {d} – der Vergleich erscheint nach den ersten vollen Tagen.", vs_tot: "Summe" });
+
 export const makeSim = ({ esc }) => class {
   get ts() { const l = (this.locale || "en").split("-")[0]; return S[l] || S.en; }
   simRule(p) { return (p?.rules || []).find((r) => r.type === "heatpump"); }
@@ -14,7 +18,7 @@ export const makeSim = ({ esc }) => class {
       this._sim = {
         pid: p.id, rid: ru.id, season: null,
         share: Number(ru.share_pct ?? 85), cop: Number(ru.cop_pct ?? 100), eff: Number(ru.boiler_eff_pct ?? 90),
-        loss: Number(ru.losses_pct ?? 0), cheap: zones.cheap ? Number((ru.el_zones || {})[zones.cheap] ?? 50) : 100,
+        loss: Number(ru.losses_pct ?? 0), real: ru.sim_real_only ?? true, cheap: zones.cheap ? Number((ru.el_zones || {})[zones.cheap] ?? 50) : 100,
       };
     }
     return this._sim;
@@ -43,7 +47,14 @@ export const makeSim = ({ esc }) => class {
     return by;
   }
 
+  _simSwSeason(ru) {
+    if (!ru.switch_date) return null;
+    const y = Number(ru.switch_date.slice(0, 4)), m = Number(ru.switch_date.slice(5, 7));
+    return m >= 9 ? y : y - 1;
+  }
+
   _simCalc(months, ru, st, zinfo) {
+    const sw = st.real ? this._simSwSeason(ru) : null;
     const k = (st.share / 100) * (st.eff / Number(ru.boiler_eff_pct || 90)) / Math.max(st.cop / 100, 0.01) * (1 + st.loss / 100);
     const fr = (v) => {
       if (zinfo.cheap) return st.cheap / 100 * (v[`ez:${zinfo.cheap}`] || 0) + (1 - st.cheap / 100) * (v[`ez:${zinfo.dear}`] || 0);
@@ -65,10 +76,11 @@ export const makeSim = ({ esc }) => class {
     };
     const rows = months.map((m) => {
       const v = m.rules[ru.id];
-      const gasSaved = (v.gp100 || 0) * st.share / 100;
-      const simEl = (v.e100 || 0) * k;
+      const y = Number(m.month.slice(0, 4)), ro = sw !== null && (Number(m.month.slice(5, 7)) >= 9 ? y : y - 1) >= sw;
+      const gasSaved = ro ? 0 : (v.gp100 || 0) * st.share / 100;
+      const simEl = ro ? 0 : (v.e100 || 0) * k;
       const avgP = v.e100 ? fr(v) / v.e100 : 0, pvP = Number(ru.pv_price || 0);
-      const cov = Math.min(simEl, pvCov(v, k));
+      const cov = ro ? 0 : Math.min(simEl, pvCov(v, k));
       const simElCost = (simEl - cov) * avgP + cov * pvP;
       const simBase = v.base_cost || 0;
       const base = simBase + (v.m_base_cost || 0);
@@ -77,8 +89,8 @@ export const makeSim = ({ esc }) => class {
       const mSave = (v.m_base_cost || 0) - (v.m_actual_cost || 0) - (v.m_el_cost || 0);
       return { month: m.month, temp: v.tdays ? v.tsum / v.tdays : null, tn: v.tn > 0, est: v.est_days > 0,
         raw: v, pv: v.pv || 0, pvLy: v.pv_ly_days || 0, pvCovered: cov + (v.m_pv_cov || 0), mDays: v.m_days || 0, days: v.tdays || 0, meterDays: v.m_meter_days || 0, mElModel: v.m_el_model || 0, mElModelCost: v.m_el_model_cost || 0, runH: v.m_run_h || 0, mEl: v.m_el || 0, mElCost: v.m_el_cost || 0, mBase: v.m_base || 0, mActual: v.m_actual || 0, mSave,
-        baseQty: (v.base || 0) + (v.m_base || 0), base, gasQty: (v.base || 0) - (v.g100 || 0) * st.share / 100 + (v.m_actual || 0), rest, el, elCost,
-        after: rest + elCost, save: base - rest - elCost, maxHeat: Math.max((v.max_heat || 0) * st.share / 100, v.max_mheat || 0) };
+        baseQty: (v.base || 0) + (v.m_base || 0), base, gasQty: (v.base || 0) - (ro ? 0 : (v.g100 || 0) * st.share / 100) + (v.m_actual || 0), rest, el, elCost,
+        after: rest + elCost, save: base - rest - elCost, maxHeat: Math.max(ro ? 0 : (v.max_heat || 0) * st.share / 100, v.max_mheat || 0), ro };
     });
     const tot = rows.reduce((a, x) => { ["baseQty", "base", "gasQty", "rest", "el", "elCost", "after", "save", "pv", "pvCovered", "pvLy", "mDays", "mBase", "mActual", "mSave", "meterDays", "mElModel", "mElModelCost", "runH", "mEl", "mElCost"].forEach((f) => { a[f] = (a[f] || 0) + x[f]; }); a.maxHeat = Math.max(a.maxHeat || 0, x.maxHeat); return a; }, {});
     return { rows, tot };
@@ -104,7 +116,8 @@ export const makeSim = ({ esc }) => class {
       ${range("loss", 0, 20, 1, s.loss, s.loss_hint, pct)}
       ${range("cop", 50, 120, 5, s.cop, s.cop_hint, pct)}
       ${range("eff", 70, 100, 1, s.eff, s.eff_hint, pct)}
-      ${ru.switch_date ? `<p class="muted small">ⓘ ${esc(s.sliders_sim.replace("{d}", this.date(ru.switch_date)))}</p>` : ""}
+      ${ru.switch_date ? `<label class="chk simreal"><input type="checkbox" id="simreal" ${st.real ? "checked" : ""}> ${esc(s.real_only.replace("{d}", this.date(ru.switch_date)))}</label>
+      <p class="muted small">ⓘ ${esc((st.real ? s.real_only_note : s.sliders_sim).replace("{d}", this.date(ru.switch_date)))}</p>` : ""}
       <div class="simbtn"><button type="button" class="small" id="simreset">${esc(s.reset)}</button>${this.admin ? `<button type="button" class="small primary" id="simstore">${esc(s.store)}</button>` : ""}</div></div>`;
     const devs = (ru.devices || []), kw = devs.reduce((a, d) => a + Number(d.kw || 0), 0);
     const devCard = `<div class="card simdev"><h3>${esc(s.devices)}</h3>${devs.map((d) => `<div class="rrow"><span class="rlbl"><span>${esc(d.name || "—")}</span><small>SCOP ${this.num(d.scop ?? 4.2, 1)} · ${esc(s.down_to.replace("{t}", this.num(d.min_temp ?? -15, 0)))}</small></span><b>${this.num(d.kw, 2)} kW</b></div>`).join("")}
@@ -151,7 +164,32 @@ export const makeSim = ({ esc }) => class {
       <div class="rrow"><span class="rlbl"><span>${esc(s.cmp_model)}</span><small>${esc(s.cmp_model_sub)}</small></span><b>${this.num(tot.mElModel, 0)} kWh · ${this.money(tot.mElModelCost)}</b></div>
       ${tot.runH ? `<div class="rrow"><span class="rlbl"><span>${esc(s.cmp_run)}</span><small>${esc(s.cmp_run_sub.replace("{h}", this.num(tot.runH / Math.max(tot.mDays, 1), 1)))}</small></span><b>${this.num(tot.runH, 0)} h</b></div>` : ""}
       <p class="muted small">${esc(tot.mElModel ? s.cmp_ratio.replace("{p}", this.num(tot.mEl / tot.mElModel * 100, 0)) : "")}</p></div>` : "";
-    return { kpis, bars, table: table + cmp };
+    return { kpis, bars, table: table + cmp + this._simVs(r, ru, st, zinfo, months) };
+  }
+
+  /* measured months of the real-only season next to the simulation of the previous season */
+  _simVs(r, ru, st, zinfo, months) {
+    const s = this.ts, sw = this._simSwSeason(ru);
+    if (!st.real || sw === null || !months.length) return "";
+    const m0 = months[0].month, y0 = Number(m0.slice(0, 4)), season = Number(m0.slice(5, 7)) >= 9 ? y0 : y0 - 1;
+    if (season < sw) return "";
+    const seasons = this._simSeasons(r, ru), prevY = Object.keys(seasons).map(Number).filter((y) => y < sw).sort().slice(-1)[0];
+    if (prevY === undefined) return "";
+    const { rows } = this._simCalc(months, ru, st, zinfo);
+    const prev = this._simCalc(seasons[prevY], ru, { ...st, real: false }, zinfo).rows;
+    const lbl = `${prevY}/${String((prevY + 1) % 100).padStart(2, "0")}`;
+    const lines = rows.filter((x) => x.mDays > 0).map((x) => {
+      const pm = prev.find((q) => q.month.slice(5) === x.month.slice(5));
+      const sim = pm && pm.days ? pm.save / pm.days * x.mDays : null;
+      return { x, pm, sim };
+    });
+    if (!lines.length) return `<div class="card simcmp"><h3>${esc(s.vs_h)}</h3><p class="muted small">${esc(s.vs_wait.replace("{d}", this.date(ru.switch_date)))}</p></div>`;
+    const tSim = lines.reduce((a, l) => a + (l.sim || 0), 0), tReal = lines.reduce((a, l) => a + l.x.mSave, 0);
+    const deg = (v) => (v === null || v === undefined ? "" : `${this.num(v, 1)} °C`);
+    return `<div class="card simcmp"><h3>${esc(s.vs_h)}</h3><p class="muted small">${esc(s.vs_sub.replace("{s}", lbl))}</p>
+      <div class="tablewrap"><table class="simtab"><thead><tr><th>${esc(s.month)}</th><th class="r">${esc(s.temp)}</th><th class="r">${esc(s.vs_sim)} ${esc(lbl)}</th><th class="r">${esc(s.vs_real)}</th></tr></thead><tbody>
+      ${lines.map((l) => `<tr><td>${esc(this.monthName(l.x.month))} <span class="mtag">● ${esc(s.meas_days.replace("{n}", this.num(l.x.mDays, 0)))}</span></td><td class="r muted">${deg(l.pm?.temp)} → ${deg(l.x.temp)}</td><td class="r">${l.sim === null ? "—" : this.money(l.sim)}</td><td class="r ${l.x.mSave < 0 ? "neg" : "pos"}">${this.money(l.x.mSave)}</td></tr>`).join("")}
+      <tr class="foot"><td>${esc(s.vs_tot)}</td><td></td><td class="r">${this.money(tSim)}</td><td class="r ${tReal < 0 ? "neg" : "pos"}">${this.money(tReal)}</td></tr></tbody></table></div></div>`;
   }
 
   _simRefresh() {
@@ -185,11 +223,12 @@ export const makeSim = ({ esc }) => class {
       const v = root.querySelector(`[data-simv="${inp.dataset.sim}"]`); if (v) v.textContent = `${this.num(Number(inp.value), 0)}%`;
       this._simRefresh();
     }));
+    $("#simreal")?.addEventListener("change", (e) => { this._sim.real = e.target.checked; const y = window.scrollY; this._render(); window.scrollTo(0, y); });
     $("#simreset")?.addEventListener("click", () => { this._sim = null; this._render(); });
     $("#simstore")?.addEventListener("click", async () => {
       const proj = JSON.parse(JSON.stringify(this.projects.find((x) => x.id === p.id)));
       const rule = proj.rules.find((x) => x.id === ru.id), st = this._sim, z = this._simZones(ru);
-      Object.assign(rule, { share_pct: st.share, cop_pct: st.cop, boiler_eff_pct: st.eff, losses_pct: st.loss });
+      Object.assign(rule, { share_pct: st.share, cop_pct: st.cop, boiler_eff_pct: st.eff, losses_pct: st.loss, sim_real_only: st.real });
       if (z.cheap) rule.el_zones = { [z.cheap]: st.cheap, [z.dear]: 100 - st.cheap };
       try {
         await this.ws({ type: "save", collection: "projects", item: proj });
