@@ -515,7 +515,10 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
           `<tr class="${y.projected ? "projrow" : ""} yrow${y.year === this._roiYear ? " on" : ""}" data-yrow="${y.year}"><td>${y.year}${y.partial ? " …" : ""}${y.projected ? `<small class="muted">${esc(t.projected)}</small>` : ""}${y.invested ? `<small class="neg">−${this.money(y.invested)}</small>` : ""}</td>
            <td class="r">${this.money(y.saved)}</td>
            <td class="r ${y.cum_saved >= y.cum_invested ? "pos" : "neg"}">${this.money(y.cum_saved - y.cum_invested)}</td></tr>`).join("");
-        body = `${this.roiMeta(r)}<div class="kpis">
+        if (!all && this.simRule(p)) body = `${this.roiMeta(r)}${this.simView(p, r)}
+          ${rules && p.rules.length > 1 ? `<h3>${esc(t.rules_h)}</h3><div class="card rules">${rules}</div>` : ""}
+          ${r.invested ? `<h3>${esc(t.payback)}</h3>${this.chart(r)}` : ""}`;
+        else body = `${this.roiMeta(r)}<div class="kpis">
           <div class="kpi"><span>${esc(t.invested)}</span><b>${this.money(r.invested)}</b><small>${cur}</small></div>
           <div class="kpi" style="border-top-color:var(--success-color,#4FB477)"><span>${esc(t.saved_to_date)}</span><b>${this.money(r.saved)}</b><small>${r.estimated ? esc(t.incl_est.replace("{v}", this.money(r.estimated))) : cur}</small></div>
           <div class="kpi"><span>${esc(t.payback)}</span><b class="sm">${pbTxt}</b><small>${r.payback_years ? esc(t.years_n.replace("{n}", this.num(r.payback_years, 1))) : ""}</small></div>
@@ -697,6 +700,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       this.shadowRoot.querySelector(".chart")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }));
     this._bindYearDetail();
+    this._bindSim();
     $("#newproj")?.addEventListener("click", () => { this._pd = { obj: { horizon_years: 25, growth_pct: 0, rules: [] } }; this._render(); });
     $("#editproj")?.addEventListener("click", () => { const p = this.projects.find((x) => x.id === this._proj); this._pd = { obj: JSON.parse(JSON.stringify(p)) }; this._render(); });
     if (!this._pd) return;

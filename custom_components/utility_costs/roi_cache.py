@@ -35,7 +35,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CACHE_KEY = f"{DOMAIN}.roi"
 CACHE_VERSION = 1
-CALC_VERSION = 2  # bump when roi.* changes its output
+CALC_VERSION = 3  # bump when roi.* changes its output
 CURRENT_MAX_AGE = timedelta(hours=1)
 
 

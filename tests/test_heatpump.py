@@ -94,3 +94,20 @@ def test_daily_means(monkeypatch):
             "b": [{"start": datetime(2024, 1, 1, 12, tzinfo=timezone.utc), "mean": 4.0},
                   {"start": datetime(2024, 1, 2, 12, tzinfo=timezone.utc), "mean": None}]}
     assert stats.daily_means(rows) == {"2024-01-01": 3.0}
+
+
+def test_whatif_inputs_scale_to_result():
+    today = date(2024, 2, 29)
+    days = {(date(2024, 1, 1) + timedelta(i)).isoformat(): 8.0 + (i % 5) for i in range(60)}
+    temps = {k: -3.0 + (i % 9) for i, k in enumerate(days)}
+    r0 = rule(share_pct=85, cop_pct=90, losses_pct=6)
+    res = roi.roi({"start_date": "2024-01-01", "rules": [r0]}, [], TAR, {"h": {"all": days, "temp": temps}}, today)
+    for m in res["months"]:
+        v = m["rules"]["h"]
+        assert abs(v["g100"] * 0.85 - v["qty"]) < 0.01
+        assert abs(v["gp100"] * 0.85 - v["gas_saved"]) < 0.05
+        scale = 0.85 / 0.9 * 1.06
+        assert abs(v["e100"] * scale - v["el"]) < 0.05
+        assert abs((0.9 * v["ez:night"] + 0.1 * v["ez:day"]) * scale - v["el_cost"]) < 0.05
+        assert v["base"] >= v["g100"] and v["tdays"] == (31 if m["month"] == "2024-01" else 29)
+        assert v["max_heat"] > 0

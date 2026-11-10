@@ -69,6 +69,30 @@ def el_unit_price(tariffs: list[dict], rule: dict, d: date) -> tuple[float, bool
     return total, est
 
 
+def _hp_month(rr: dict, tariffs: list[dict], rule: dict, d: date, gas: float, temp: float,
+              from_norm: bool, full: dict[str, float]) -> None:
+    """Month inputs of a heat pump rule for the what-if view in the panel.
+
+    Values at 100 % share, 100 % COP and no losses, so the panel can scale them
+    (share, COP, boiler efficiency, tariff zones) without asking the server:
+    base / base_cost  heating gas and its cost without pumps,
+    g100 / gp100      gas the pumps could replace and its cost,
+    e100, "ez:<zone>" pump electricity and its cost in each tariff zone,
+    tsum / tdays / tn temperature sum, days, days from typical temperatures,
+    max_heat          highest daily heat (kWh) the pumps would give.
+    """
+    pg, _ = unit_price(tariffs, rule.get("medium"), rule.get("zone") or "all", d)
+    add = {"base": gas, "base_cost": gas * pg, "g100": full["gas"], "gp100": full["gas"] * pg,
+           "e100": full["el"], "tsum": temp, "tdays": 1.0, "tn": 1.0 if from_norm else 0.0}
+    medium = rule.get("el_medium")
+    t = tariff_on(tariffs, medium, d) or _nearest_tariff(tariffs, medium, d)
+    for zone in ((t or {}).get("prices") or {"all": 0}):
+        add[f"ez:{zone}"] = full["el"] * unit_price(tariffs, medium, zone, d)[0]
+    for k, v in add.items():
+        rr[k] = rr.get(k, 0.0) + v
+    rr["max_heat"] = max(rr.get("max_heat", 0.0), full["heat"])
+
+
 def fixed_per_day(tariffs: list[dict], medium: str, d: date) -> tuple[float, bool]:
     t = tariff_on(tariffs, medium, d)
     est = False
@@ -197,6 +221,11 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                 if estimated:
                     gas = hp.estimate_gas(r, temp)
                 sim = hp.simulate_day(r, gas, temp)
+                full = hp.simulate_day({**r, "share_pct": 100, "cop_pct": 100, "losses_pct": 0}, gas, temp)
+                rr = row["rules"].setdefault(r["id"], {"qty": 0.0, "saved": 0.0})
+                _hp_month(rr, tariffs, r, d, gas, temp, from_norm, full)
+                if estimated:
+                    rr["est_days"] = rr.get("est_days", 0.0) + 1
                 if not sim["gas"] and not sim["el"]:
                     continue
                 pg, pe1 = unit_price(tariffs, r.get("medium"), r.get("zone") or "all", d)
@@ -215,7 +244,6 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                 if estimated:
                     est_val = val
                     tot["est_qty"] += qty
-                rr = row["rules"].setdefault(r["id"], {"qty": 0.0, "saved": 0.0})
                 for k, v in (("el", sim["el"]), ("gas_saved", gas_saved), ("el_cost", el_cost)):
                     rr[k] = rr.get(k, 0.0) + v
                 sign = 1.0  # the rule carries its own sign (gas saved - electricity)
@@ -251,7 +279,7 @@ def merge_history(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
             for rid, rr in row["rules"].items():
                 t = rules.setdefault(rid, {"qty": 0.0, "saved": 0.0})
                 for k, v in rr.items():
-                    t[k] = t.get(k, 0.0) + v
+                    t[k] = max(t.get(k, 0.0), v) if k.startswith("max") else t.get(k, 0.0) + v
             out["months"][mk] = {"month": mk, "saved": x["saved"] + row["saved"],
                                  "estimated": x["estimated"] + row["estimated"], "rules": rules}
         else:

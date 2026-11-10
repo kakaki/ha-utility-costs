@@ -6,8 +6,8 @@
 const V = new URL(import.meta.url).search;
 const TAB_ORDER = ["summary", "investments", "invoices", "installments", "tariffs", "readings", "corrections", "suppliers", "settings"];
 const OPTIONAL_TABS = TAB_ORDER.filter((k) => !["summary", "settings"].includes(k));
-const [{ I18N }, { CSS }, { makeExt }, { makeMore }] = await Promise.all([
-  import(`./uc-i18n.js${V}`), import(`./uc-css.js${V}`), import(`./uc-ext.js${V}`), import(`./uc-more.js${V}`),
+const [{ I18N }, { CSS }, { makeExt }, { makeMore }, { makeSim }] = await Promise.all([
+  import(`./uc-i18n.js${V}`), import(`./uc-css.js${V}`), import(`./uc-ext.js${V}`), import(`./uc-more.js${V}`), import(`./uc-sim.js${V}`),
 ]);
 const getP = (o, path) => path.split(".").reduce((a, k) => (a == null ? a : a[k]), o);
 const setP = (o, path, v) => {
@@ -530,7 +530,7 @@ class UtilityCostsPanel extends HTMLElement {
     });
   }
 }
-for (const Ext of [makeExt({ esc, getP, setP, uid }), makeMore({ esc })])
+for (const Ext of [makeExt({ esc, getP, setP, uid }), makeMore({ esc }), makeSim({ esc })])
   for (const [k, d] of Object.entries(Object.getOwnPropertyDescriptors(Ext.prototype))) if (k !== "constructor") Object.defineProperty(UtilityCostsPanel.prototype, k, d);
 
 if (!customElements.get("utility-costs-panel")) customElements.define("utility-costs-panel", UtilityCostsPanel);

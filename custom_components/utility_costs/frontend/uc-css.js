@@ -300,4 +300,38 @@ details.adv { margin-top:16px; } details.adv summary { cursor:pointer; color: va
     .src .srm { grid-column: 4; align-self: end; padding-bottom: 10px; }
   }
   input[data-lazydate][type=text]::placeholder { color: var(--secondary-text-color); font-style: italic; }
+  /* heat pump what-if view */
+  .simseason { margin-bottom: 4px; }
+  .simseason small { font-weight: 400; opacity: .8; }
+  .simgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 14px; align-items: stretch; margin-top: 14px; }
+  .simctl h3, .simdev h3, .simchart h3 { margin: 0 0 10px; font-size: 15px; }
+  .simctl, .simdev, .simchart, .simnote { padding: 14px 16px; }
+  .simnote { margin-top: 14px; } .simnote p { margin: 0; white-space: pre-line; }
+  label.simr { margin-bottom: 14px; gap: 6px; }
+  label.simr > span { display: flex; justify-content: space-between; color: var(--primary-text-color); font-size: 14px; }
+  label.simr b { color: var(--primary-color); font-size: 15px; }
+  label.simr input[type=range] { width: 100%; accent-color: var(--primary-color); }
+  label.simr small { font-size: 12px; }
+  .simbtn { display: flex; gap: 8px; flex-wrap: wrap; }
+  .simdev .rrow.tot { border-top: 1px solid var(--divider-color); margin-top: 6px; padding-top: 8px; }
+  .simchart { margin-top: 14px; }
+  .sbars { display: flex; gap: 6px; align-items: flex-end; overflow-x: auto; padding-top: 4px; }
+  .sb { flex: 1 0 34px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: default; }
+  .sv { font-size: 11px; color: var(--success-color, #4FB477); min-height: 14px; }
+  .sv.neg { color: var(--error-color, #db4437); }
+  .sstack { position: relative; width: 70%; max-width: 46px; display: flex; flex-direction: column-reverse; }
+  .sstack i { display: block; width: 100%; }
+  .sstack .sgas { border-radius: 0 0 3px 3px; }
+  .sstack .sel { border-radius: 3px 3px 0 0; }
+  .sstack .sbase { position: absolute; left: -15%; width: 130%; height: 0; border-top: 2px dashed var(--primary-text-color); opacity: .55; }
+  .sl { font-size: 11px; color: var(--secondary-text-color); }
+  .slegend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font-size: 12px; color: var(--secondary-text-color); }
+  .slegend span { display: inline-flex; align-items: center; gap: 6px; }
+  .slegend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .slegend i.dash { width: 16px; height: 0; border-top: 2px dashed var(--primary-text-color); border-radius: 0; opacity: .6; }
+  .simtop { grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); }
+  .simtop > [data-simc] > .simchart { margin-top: 0; height: 100%; box-sizing: border-box; }
+  @media (max-width: 860px) { .simtop { grid-template-columns: minmax(0, 1fr); } }
+  [data-simt] { margin-top: 14px; }
+  table.simtab td, table.simtab th { white-space: nowrap; }
 `;
