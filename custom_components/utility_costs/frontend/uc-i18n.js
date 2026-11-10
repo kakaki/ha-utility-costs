@@ -109,6 +109,7 @@ const X = {
     no_tariff: "No price (tariff) for: {m} – add it in Tariffs, otherwise this part counts as 0.",
     tpl_pv_rule: "Energy from PV instead of the grid", tpl_hp_gas: "Gas the boiler would have burnt", tpl_hp_el: "Electricity used by the heat pump",
     hint_hp: "Factor for heat → gas: 1 ÷ (kWh per m³ × boiler efficiency), e.g. 1 ÷ (10.5 × 0.9) = 0.106",
+    src_any: "from the start", ms_sensors: "sensors: {n}", s_media: "Media and meters",
     tpl_hp_rule: "Heat pumps instead of the gas boiler", hp_gas_src: "Gas used for space heating", hp_gas_hint: "Pick the heating part of gas (Settings → Usage split) or the gas meter. Hot water stays on gas.", hp_share: "Heating moved to pumps (%)", hp_cop: "COP correction (%)", hp_kwh: "kWh per gas unit", hp_eff: "Boiler efficiency (%)", hp_devices: "Devices (air conditioners / heat pumps)", hp_dev_name: "Name / room", hp_dev_kw: "Max heat output (kW)", hp_dev_scop: "SCOP", hp_dev_min: "Works down to (°C)", add_dev: "+ Device", del_dev: "Remove device", hp_temp: "Outdoor temperature", hp_temp_hint: "Daily mean from HA statistics. Days without a reading use the typical monthly temperatures below.", hp_normals: "Typical monthly temperatures (°C)", hp_el: "Electricity for the pumps", hp_losses: "Extra losses (%)", hp_zones_hint: "Share of pump energy in each price zone, e.g. mostly the night zone when a home battery charges at night.", hp_gas_saved: "gas", hp_el_cost: "electricity", hp_temp_est: "{n} days with typical temperature",
   },
   pl: {
@@ -136,6 +137,7 @@ const X = {
     no_tariff: "Brak ceny (taryfy) dla: {m} – dodaj ją w Taryfach, inaczej ta część liczy się jako 0.",
     tpl_pv_rule: "Energia z PV zamiast z sieci", tpl_hp_gas: "Gaz, który spaliłby kocioł", tpl_hp_el: "Prąd zużyty przez pompę ciepła",
     hint_hp: "Mnożnik ciepło → gaz: 1 ÷ (kWh na m³ × sprawność kotła), np. 1 ÷ (10,5 × 0,9) = 0,106",
+    src_any: "od początku", ms_sensors: "sensory: {n}", s_media: "Media i liczniki",
     tpl_hp_rule: "Pompy ciepła zamiast kotła gazowego", hp_gas_src: "Gaz zużyty na ogrzewanie", hp_gas_hint: "Wybierz część „ogrzewanie” gazu (Ustawienia → Podział zużycia) albo licznik gazu. Ciepła woda zostaje na gazie.", hp_share: "Udział ogrzewania przeniesiony na pompy (%)", hp_cop: "Korekta COP (%)", hp_kwh: "kWh na jednostkę gazu", hp_eff: "Sprawność kotła (%)", hp_devices: "Urządzenia (klimatyzatory / pompy ciepła)", hp_dev_name: "Nazwa / pokój", hp_dev_kw: "Maks. moc grzewcza (kW)", hp_dev_scop: "SCOP", hp_dev_min: "Pracuje do (°C)", add_dev: "+ Urządzenie", del_dev: "Usuń urządzenie", hp_temp: "Temperatura zewnętrzna", hp_temp_hint: "Średnia dobowa ze statystyk HA. Dni bez odczytu używają typowych temperatur miesięcznych poniżej.", hp_normals: "Typowe temperatury miesięczne (°C)", hp_el: "Prąd dla pomp", hp_losses: "Dodatkowe straty (%)", hp_zones_hint: "Udział energii pomp w strefach cen, np. głównie noc, gdy magazyn energii ładuje się w nocy.", hp_gas_saved: "gaz", hp_el_cost: "prąd", hp_temp_est: "{n} dni z typową temperaturą",
   },
   de: {
@@ -163,6 +165,7 @@ const X = {
     no_tariff: "Kein Preis (Tarif) für: {m} – bitte unter Tarife ergänzen, sonst zählt dieser Teil als 0.",
     tpl_pv_rule: "PV-Strom statt Netzstrom", tpl_hp_gas: "Gas, das der Kessel verbrannt hätte", tpl_hp_el: "Strom der Wärmepumpe",
     hint_hp: "Faktor Wärme → Gas: 1 ÷ (kWh pro m³ × Kesselwirkungsgrad), z. B. 1 ÷ (10,5 × 0,9) = 0,106",
+    src_any: "von Anfang an", ms_sensors: "Sensoren: {n}", s_media: "Medien und Zähler",
     tpl_hp_rule: "Wärmepumpen statt Gaskessel", hp_gas_src: "Gas für die Raumheizung", hp_gas_hint: "Wähle den Heizungsteil des Gases (Einstellungen → Verbrauchsaufteilung) oder den Gaszähler. Warmwasser bleibt auf Gas.", hp_share: "Auf Pumpen verlagerte Heizung (%)", hp_cop: "COP-Korrektur (%)", hp_kwh: "kWh pro Gaseinheit", hp_eff: "Kesselwirkungsgrad (%)", hp_devices: "Geräte (Klimaanlagen / Wärmepumpen)", hp_dev_name: "Name / Raum", hp_dev_kw: "Max. Heizleistung (kW)", hp_dev_scop: "SCOP", hp_dev_min: "Arbeitet bis (°C)", add_dev: "+ Gerät", del_dev: "Gerät entfernen", hp_temp: "Außentemperatur", hp_temp_hint: "Tagesmittel aus HA-Statistiken. Tage ohne Messwert nutzen die typischen Monatstemperaturen unten.", hp_normals: "Typische Monatstemperaturen (°C)", hp_el: "Strom für die Pumpen", hp_losses: "Zusätzliche Verluste (%)", hp_zones_hint: "Anteil der Pumpenenergie je Preiszone, z. B. überwiegend Nacht, wenn ein Heimspeicher nachts lädt.", hp_gas_saved: "Gas", hp_el_cost: "Strom", hp_temp_est: "{n} Tage mit typischer Temperatur",
   },
 };

@@ -52,12 +52,12 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
   srcEditor(base, list, unit) {
     const t = this.t;
     const rows = (list || []).map((s, i) => `<div class="src">
-      <div class="grid"><label class="half">${esc(t.src_from)}<input type="date" data-p="${base}.${i}.from" value="${esc(s.from || "")}"></label>
-      <label class="half">${esc(t.src_factor)}<input type="number" step="any" data-num data-p="${base}.${i}.factor" value="${s.factor ?? ""}" placeholder="1"></label></div>
-      <div class="lbl">${esc(t.src_ids)}</div>
+      <label class="sfrom">${esc(t.src_from)}<input type="${s.from ? "date" : "text"}" data-lazydate data-p="${base}.${i}.from" value="${esc(s.from || "")}" placeholder="${esc(t.src_any)}"></label>
+      <label class="sfac">${esc(t.src_factor)}<input type="number" step="any" data-num data-p="${base}.${i}.factor" value="${s.factor ?? ""}" placeholder="1"></label>
+      <div class="sids"><div class="lbl">${esc(t.src_ids)}</div>
       <div class="ids">${(s.ids || []).map((id, j) => `<span class="ent" title="${esc(id)}">${esc(this.entName(id))}<small>${esc(id)}</small><button type="button" class="xs" data-act="rm" data-p="${base}.${i}.ids" data-i="${j}">✕</button></span>`).join("")}
-        <input list="ucstats" class="addent" data-addto="${base}.${i}.ids" placeholder="${esc(t.add_entity)}"></div>
-      <button type="button" class="link danger" data-act="rm" data-p="${base}" data-i="${i}">${esc(t.del_src)}</button></div>`).join("");
+        <input list="ucstats" class="addent" data-addto="${base}.${i}.ids" placeholder="${esc(t.add_entity)}"></div></div>
+      <button type="button" class="link danger srm" data-act="rm" data-p="${base}" data-i="${i}" title="${esc(t.del_src)}">${esc(t.del_src)}</button></div>`).join("");
     return `${rows}<button type="button" class="small" data-act="add" data-p="${base}" data-tpl="src">${esc(t.add_src)}</button>`;
   }
 
@@ -82,32 +82,40 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     if (!this.admin) return `<p class="muted">${esc(t.readonly)}</p>`;
     const w = this._workSettings();
     const media = (w.media || []).map((m, i) => {
+      const nIds = (list) => (list || []).reduce((a, x) => a + (x.ids || []).filter(Boolean).length, 0);
+      const sensors = m.zones.reduce((a, z) => a + nIds(m.statistics[z.id]), 0);
+      const zsum = m.zones.map((z) => z.name || t.zones[z.id] || z.id).join(", ");
+      const psum = (m.parts || []).map((p) => p.name).filter(Boolean).join(", ");
+      const open = this._openMed ? this._openMed.has(m.id) : false;
       const zones = m.zones.map((z, j) => `<div class="zone">
         <div class="zhead"><label>${esc(t.zone_name)}<input data-p="media.${i}.zones.${j}.name" value="${esc(z.name || "")}" placeholder="${esc(t.zones[z.id] || z.id)}"></label>
         ${m.zones.length > 1 ? `<button type="button" class="link danger" data-act="rmzone" data-i="${i}" data-j="${j}">${esc(t.del_zone)}</button>` : ""}</div>
         <div class="lbl">${esc(t.meters)}</div>
         ${this.srcEditor(`media.${i}.statistics.${z.id}`, m.statistics[z.id], m.unit)}
-        <label class="mt">${esc(t.sync_price)}<input list="ucnum" data-sync="${esc(m.id)}.${esc(z.id)}" value="${esc(w.sync[`${m.id}.${z.id}`] || "")}" placeholder="input_number.…"></label></div>`).join("");
-      return `<section class="card set" style="--mc:${this.color(m.id)}">
-        <div class="shead"><b>${esc(m.name || t.media[m.id] || m.id)}</b><button type="button" class="link danger" data-act="rmmedium" data-i="${i}">${esc(t.del_medium)}</button></div>
-        <div class="grid"><label>${esc(t.m_name)}<input data-p="media.${i}.name" value="${esc(m.name || "")}" placeholder="${esc(t.media[m.id] || "")}"></label>
+        <label class="mt sync">${esc(t.sync_price)}<input list="ucnum" data-sync="${esc(m.id)}.${esc(z.id)}" value="${esc(w.sync[`${m.id}.${z.id}`] || "")}" placeholder="input_number.…"></label></div>`).join("");
+      return `<details class="card set med" style="--mc:${this.color(m.id)}" data-med="${esc(m.id)}" ${open ? "open" : ""}>
+        <summary class="shead"><span class="mtitle"><i class="mdot"></i><b>${esc(m.name || t.media[m.id] || m.id)}</b>
+          <small>${esc(m.unit || "")}${zsum ? ` · ${esc(t.zones_h)}: ${esc(zsum)}` : ""} · ${esc(t.ms_sensors.replace("{n}", sensors))}${psum ? ` · ${esc(t.parts_h)}: ${esc(psum)}` : ""}</small></span><span class="chev">›</span></summary>
+        <div class="mbody"><div class="mtop"><button type="button" class="link danger" data-act="rmmedium" data-i="${i}">${esc(t.del_medium)}</button></div>
+        <div class="grid g3"><label>${esc(t.m_name)}<input data-p="media.${i}.name" value="${esc(m.name || "")}" placeholder="${esc(t.media[m.id] || "")}"></label>
         <label class="half">${esc(t.m_unit)}<input data-p="media.${i}.unit" value="${esc(m.unit || "")}"></label><label class="half">${esc(t.m_id)}<input value="${esc(m.id)}" disabled></label></div>
-        <h4>${esc(t.zones_h)}</h4>${zones}
+        <h4>${esc(t.zones_h)}</h4><div class="zgrid">${zones}</div>
         <button type="button" class="small" data-act="addzone" data-i="${i}">${esc(t.add_zone)}</button>
         <h4>${esc(t.parts_h)}</h4><p class="muted small">${esc(t.parts_hint)}</p>
-        ${(m.parts || []).map((p, k) => `<div class="zone"><div class="zhead"><label>${esc(t.part_name)}<input data-p="media.${i}.parts.${k}.name" value="${esc(p.name || "")}"></label>
+        <div class="zgrid">${(m.parts || []).map((p, k) => `<div class="zone"><div class="zhead"><label>${esc(t.part_name)}<input data-p="media.${i}.parts.${k}.name" value="${esc(p.name || "")}"></label>
           <button type="button" class="link danger" data-act="rmpart" data-i="${i}" data-k="${k}">${esc(t.del_part)}</button></div>
-          <div class="lbl">${esc(t.meters)}</div>${this.srcEditor(`media.${i}.parts.${k}.statistics`, p.statistics, m.unit)}</div>`).join("")}
+          <div class="lbl">${esc(t.meters)}</div>${this.srcEditor(`media.${i}.parts.${k}.statistics`, p.statistics, m.unit)}</div>`).join("")}</div>
         <button type="button" class="small" data-act="addpart" data-i="${i}">${esc(t.add_part)}</button>
-        <label class="mt">${esc(t.sync_fixed)}<input list="ucnum" data-sync="${esc(m.id)}.fixed" value="${esc(w.sync[`${m.id}.fixed`] || "")}" placeholder="input_number.…"></label>
-      </section>`;
+        <label class="mt sync">${esc(t.sync_fixed)}<input list="ucnum" data-sync="${esc(m.id)}.fixed" value="${esc(w.sync[`${m.id}.fixed`] || "")}" placeholder="input_number.…"></label>
+      </div></details>`;
     }).join("");
     return `<div class="edit wiz" data-w="s">${this.datalists()}
       <p class="muted hint">${esc(t.hint_src)}</p>
-      <section class="card set"><div class="shead"><b>${esc(t.s_general)}</b></div><div class="grid"><label class="half">${esc(t.currency)}<input data-p="currency" value="${esc(w.currency || "")}" maxlength="3"></label>
+      <div class="setgrid"><section class="card set"><div class="shead"><b>${esc(t.s_general)}</b></div><div class="grid"><label class="half">${esc(t.currency)}<input data-p="currency" value="${esc(w.currency || "")}" maxlength="3"></label>
         <label>${esc(t.ai_entity)}<select data-p="ai_entity"><option value="">${esc(t.ai_none)}</option>${Object.keys(this._hass?.states || {}).filter((e) => e.startsWith("ai_task.")).map((e) => `<option value="${esc(e)}" ${e === (w.ai_entity ?? Object.keys(this._hass.states).find((x) => x.startsWith("ai_task."))) ? "selected" : ""}>${esc(this.entName(e))}</option>`).join("")}</select></label></div></section>
-      ${this.tabsSection(w)}
+      ${this.tabsSection(w)}</div>
       ${this.notifySection(w)}
+      <h3 class="medh">${esc(t.s_media)}</h3>
       ${media}
       <button type="button" data-act="addmedium">${esc(t.add_medium)}</button>
       <div class="savebar"><button type="button" class="primary" id="savewiz">${esc(t.save_settings)}</button></div>
@@ -614,6 +622,14 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         if (el.hasAttribute("data-rr")) this._rerenderKeep();
       });
     });
+    root.querySelectorAll("[data-lazydate]").forEach((el) => {
+      el.addEventListener("focus", () => { if (el.type !== "date") { el.type = "date"; try { el.showPicker?.(); } catch (e) { /* not allowed */ } } });
+      el.addEventListener("blur", () => { if (!el.value) el.type = "text"; });
+    });
+    root.querySelectorAll("details.med").forEach((el) => el.addEventListener("toggle", () => {
+      this._openMed = this._openMed || new Set();
+      if (el.open) this._openMed.add(el.dataset.med); else this._openMed.delete(el.dataset.med);
+    }));
     root.querySelectorAll("[data-norm]").forEach((el) => el.addEventListener("change", () => {
       const [i, k] = el.dataset.norm.split(".").map(Number), r = this._pd.obj.rules[i];
       const arr = Array.isArray(r.temp_normals) && r.temp_normals.length === 12 ? r.temp_normals : Array(12).fill(null);
@@ -648,7 +664,8 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       } else if (act === "rmpart") {
         obj.media[Number(el.dataset.i)].parts.splice(Number(el.dataset.k), 1);
       } else if (act === "addmedium") {
-        obj.media.push({ id: uid("m"), name: this.t.new_medium, unit: "", zones: [{ id: "all", name: "" }], statistics: {} });
+        const nm = { id: uid("m"), name: this.t.new_medium, unit: "", zones: [{ id: "all", name: "" }], statistics: {} };
+        obj.media.push(nm); (this._openMed = this._openMed || new Set()).add(nm.id);
       } else if (act === "rmmedium") {
         if (!confirm(this.t.confirm_del_medium)) return;
         obj.media.splice(Number(el.dataset.i), 1);
