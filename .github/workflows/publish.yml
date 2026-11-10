@@ -1,0 +1,58 @@
+name: Publish release
+
+# One-click release: Actions → "Publish release" → Run workflow.
+# Version comes from manifest.json, notes from the matching "## <version>" section of CHANGELOG.md.
+# Run it on "main" for a normal release, or on "dev" for a beta (always published as a pre-release).
+
+on:
+  workflow_dispatch:
+    inputs:
+      prerelease:
+        description: "Pre-release (beta) – always on when not run from main"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read version and notes
+        id: meta
+        run: |
+          VERSION=$(jq -r .version custom_components/utility_costs/manifest.json)
+          TAG="v$VERSION"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null; then
+            echo "::error::Tag $TAG already exists – bump the version in manifest.json first"; exit 1
+          fi
+          awk -v v="$VERSION" '
+            $0 ~ "^## " { if (found) exit; if ($2 == v) { found = 1; next } }
+            found { print }
+          ' CHANGELOG.md | sed -e '/./,$!d' > notes.md
+          if [ ! -s notes.md ]; then
+            echo "::error::CHANGELOG.md has no section '## $VERSION'"; exit 1
+          fi
+          PRE=false
+          if [ "${{ inputs.prerelease }}" = "true" ] || [ "$GITHUB_REF_NAME" != "main" ]; then PRE=true; fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "pre=$PRE" >> "$GITHUB_OUTPUT"
+          echo "### $TAG (pre-release: $PRE)" >> "$GITHUB_STEP_SUMMARY"
+          cat notes.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Zip integration
+        run: cd custom_components/utility_costs && zip -r ../../utility_costs.zip . -x '__pycache__/*'
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: ${{ steps.meta.outputs.version }}
+          body_path: notes.md
+          prerelease: ${{ steps.meta.outputs.pre }}
+          make_latest: ${{ steps.meta.outputs.pre == 'true' && 'false' || 'true' }}
+          files: utility_costs.zip
