@@ -25,24 +25,25 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     const t = this.t, b = `rules.${i}`;
     const el = this.media.find((x) => x.id === r.el_medium);
     const n = (k, v, ph, lbl, cls = "half") => `<label class="${cls}">${esc(lbl)}<input type="number" step="any" data-num data-p="${b}.${k}" value="${v ?? ""}" placeholder="${ph}"></label>`;
-    const devs = (r.devices || []).map((d, j) => `<div class="src hpdev"><div class="grid">
-        <label class="wide">${esc(t.hp_dev_name)}<input data-p="${b}.devices.${j}.name" value="${esc(d.name || "")}"></label>
-        ${n(`devices.${j}.kw`, d.kw, "3.5", t.hp_dev_kw)}${n(`devices.${j}.scop`, d.scop, "4.2", t.hp_dev_scop)}
-        ${n(`devices.${j}.min_temp`, d.min_temp, "-15", t.hp_dev_min)}</div>
-        <button type="button" class="link danger" data-act="rm" data-p="${b}.devices" data-i="${j}">${esc(t.del_dev)}</button></div>`).join("");
+    const devs = (r.devices || []).map((d, j) => `<div class="hpdev">
+        <label class="dname">${esc(t.hp_dev_name)}<input data-p="${b}.devices.${j}.name" value="${esc(d.name || "")}"></label>
+        ${n(`devices.${j}.kw`, d.kw, "3.5", t.hp_dev_kw, "dnum")}${n(`devices.${j}.scop`, d.scop, "4.2", t.hp_dev_scop, "dnum")}
+        ${n(`devices.${j}.min_temp`, d.min_temp, "-15", t.hp_dev_min, "dnum")}
+        <button type="button" class="link danger drm" data-act="rm" data-p="${b}.devices" data-i="${j}" title="${esc(t.del_dev)}">✕</button></div>`).join("");
     const zones = el ? this.zones(el.id).map((z) => n(`el_zones.${z}`, (r.el_zones || {})[z], "", `${this.zName(el.id, z) || z} (%)`)).join("") : "";
     const norm = HP_NORMALS.map((d, k) => `<label>${esc(new Date(2024, k, 1).toLocaleDateString(this.locale, { month: "short" }))}<input type="number" step="any" data-norm="${i}.${k}" value="${(r.temp_normals || [])[k] ?? ""}" placeholder="${d}"></label>`).join("");
-    return `<div class="lbl">${esc(t.hp_gas_src)}</div><p class="muted small">${esc(t.hp_gas_hint)}</p>${this.srcEditor(`${b}.sources`, r.sources)}
-      <label class="mt">${esc(t.r_est)}<input type="number" step="any" data-num data-p="${b}.estimate_per_year" value="${r.estimate_per_year ?? ""}"></label>
-      <div class="grid mt">${n("share_pct", r.share_pct, "85", t.hp_share)}${n("cop_pct", r.cop_pct, "100", t.hp_cop)}
+    return `<h5>${esc(t.hp_gas_src)}</h5><p class="muted small">${esc(t.hp_gas_hint)}</p>${this.srcEditor(`${b}.sources`, r.sources)}
+      <div class="grid g4 mt">${n("estimate_per_year", r.estimate_per_year, "", t.r_est)}</div>
+      <h5>${esc(t.hp_assume)}</h5>
+      <div class="grid g4">${n("share_pct", r.share_pct, "85", t.hp_share)}${n("cop_pct", r.cop_pct, "100", t.hp_cop)}
         ${n("kwh_per_unit", r.kwh_per_unit, "11", t.hp_kwh)}${n("boiler_eff_pct", r.boiler_eff_pct, "90", t.hp_eff)}</div>
-      <div class="lbl">${esc(t.hp_devices)}</div>${devs}<button type="button" class="small" data-act="adddev" data-i="${i}">${esc(t.add_dev)}</button>
-      <div class="lbl">${esc(t.hp_temp)}</div><p class="muted small">${esc(t.hp_temp_hint)}</p>
+      <h5>${esc(t.hp_devices)}</h5><div class="hpdevs">${devs}</div><button type="button" class="small" data-act="adddev" data-i="${i}">${esc(t.add_dev)}</button>
+      <h5>${esc(t.hp_temp)}</h5><p class="muted small">${esc(t.hp_temp_hint)}</p>
       <div class="ids">${(r.temp_ids || []).map((id, j) => `<span class="ent" title="${esc(id)}">${esc(this.entName(id))}<small>${esc(id)}</small><button type="button" class="xs" data-act="rm" data-p="${b}.temp_ids" data-i="${j}">✕</button></span>`).join("")}
         <input list="uctemp" class="addent" data-addto="${b}.temp_ids" placeholder="${esc(t.add_entity)}"></div>
       <details class="mt"><summary>${esc(t.hp_normals)}</summary><div class="hpnorm">${norm}</div></details>
-      <div class="lbl">${esc(t.hp_el)}</div>
-      <div class="grid"><label class="half">${esc(t.r_medium)}<select data-p="${b}.el_medium" data-rr>${this.media.map((x) => `<option value="${esc(x.id)}" ${x.id === r.el_medium ? "selected" : ""}>${esc(this.mName(x.id))}</option>`).join("")}</select></label>
+      <h5>${esc(t.hp_el)}</h5>
+      <div class="grid g4"><label class="half">${esc(t.r_medium)}<select data-p="${b}.el_medium" data-rr>${this.media.map((x) => `<option value="${esc(x.id)}" ${x.id === r.el_medium ? "selected" : ""}>${esc(this.mName(x.id))}</option>`).join("")}</select></label>
         ${n("losses_pct", r.losses_pct, "0", t.hp_losses)}${zones}</div>
       ${zones ? `<p class="muted small">${esc(t.hp_zones_hint)}</p>` : ""}`;
   }
@@ -576,8 +577,11 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       }
       const m = this.media.find((x) => x.id === r.medium);
       const zsel = typ === "qty" || typ === "heatpump" ? `<label class="half">${esc(t.r_zone)}<select data-p="rules.${i}.zone">${opt(this.zones(r.medium), r.zone, Object.fromEntries(this.zones(r.medium).map((z) => [z, this.zName(r.medium, z)])))}</select></label>` : "";
-      return `<div class="rule" style="--mc:${typ === "money" ? "var(--primary-color)" : this.color(r.medium)}">
-        <div class="grid"><label class="wide">${esc(t.r_label)}<input data-p="rules.${i}.label" value="${esc(r.label || "")}"></label>
+      const open = this._openRule ? this._openRule.has(r.id) : (o.rules || []).length === 1;
+      const sum = [t.types[typ], typ !== "money" && r.medium ? this.mName(r.medium) : "", typ === "heatpump" ? `${r.share_pct ?? 85}% · ${(r.devices || []).length} × ${esc(t.hp_dev_short)}` : ""].filter(Boolean).join(" · ");
+      return `<details class="rule" data-rule="${esc(r.id)}" style="--mc:${typ === "money" ? "var(--primary-color)" : this.color(r.medium)}" ${open ? "open" : ""}>
+        <summary class="rhead"><span class="mtitle"><i class="mdot"></i><b>${esc(r.label || t.types[typ])}</b><small>${esc(sum)}</small></span><span class="chev">›</span></summary>
+        <div class="rbody"><div class="grid"><label class="wide">${esc(t.r_label)}<input data-p="rules.${i}.label" value="${esc(r.label || "")}"></label>
         <label class="half">${esc(t.r_type)}<select data-p="rules.${i}.type" data-rr>${opt(["qty", "fixed", "money", "heatpump"], typ, t.types)}</select></label>
         ${typ === "heatpump" ? `<label class="half"></label>` : `<label class="half">${esc(t.r_effect)}<select data-p="rules.${i}.effect">${opt(["avoid", "add"], r.effect || "avoid", t.effects)}</select></label>`}
         ${typ !== "money" ? `<label class="half">${esc(t.r_medium)}<select data-p="rules.${i}.medium" data-rr>${opt(this.media.map((x) => x.id), r.medium, Object.fromEntries(this.media.map((x) => [x.id, this.mName(x.id)])))}</select></label>${zsel}` : ""}
@@ -588,13 +592,13 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
           ${r.medium === "gas" ? `<p class="muted small">${esc(t.hint_hp)}</p>` : r.medium === "fuel" ? `<p class="muted small">${esc(t.hint_ev)}</p>` : ""}
           <label class="mt">${esc(t.r_est)}<input type="number" step="any" data-num data-p="rules.${i}.estimate_per_year" value="${r.estimate_per_year ?? ""}"></label>` : ""}
         ${typ === "heatpump" ? this.hpEditor(r, i) : ""}
-        <button type="button" class="link danger" data-act="rm" data-p="rules" data-i="${i}">${esc(t.del_rule)}</button></div>`;
+        <button type="button" class="link danger" data-act="rm" data-p="rules" data-i="${i}">${esc(t.del_rule)}</button></div></details>`;
     }).join("");
     const tpls = !o.id && !(o.rules || []).length ? `<div class="lbl">${esc(t.templates)}</div><div class="tpls">${["pv", "hp", "ev", "blank"].map((k) => `<button type="button" data-act="tpl" data-tpl="${k}">${esc(t.tpl[k])}</button>`).join("")}</div>` : "";
-    return `<div class="backdrop"><div class="dialog edit" data-w="p">
+    return `<div class="backdrop"><div class="dialog edit pd" data-w="p">
       <div class="dhead"><span class="grab"></span><h2>${esc(o.id ? t.edit_proj : t.new_proj)}</h2><button type="button" class="x" id="pdx">✕</button></div>
       <div class="dbody">${this.datalists()}${tpls}
-        <div class="grid"><label class="wide">${esc(t.name)} *<input data-p="name" value="${esc(o.name || "")}"></label>
+        <div class="grid g4 pfields"><label class="pname">${esc(t.name)} *<input data-p="name" value="${esc(o.name || "")}"></label>
         <label class="half">${esc(t.start_date)}<input type="date" data-p="start_date" value="${esc(o.start_date || "")}"></label>
         <label class="half">${esc(t.horizon)}<input type="number" data-num data-p="horizon_years" value="${o.horizon_years ?? 25}"></label>
         <label class="half">${esc(t.growth)}<input type="number" step="any" data-num data-p="growth_pct" value="${o.growth_pct ?? 0}"></label></div>
@@ -630,6 +634,10 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       el.addEventListener("focus", () => { if (el.type !== "date") { el.type = "date"; try { el.showPicker?.(); } catch (e) { /* not allowed */ } } });
       el.addEventListener("blur", () => { if (!el.value) el.type = "text"; });
     });
+    root.querySelectorAll("details.rule").forEach((el) => el.addEventListener("toggle", () => {
+      if (!this._openRule) this._openRule = new Set([...root.querySelectorAll("details.rule[open]")].map((x) => x.dataset.rule));
+      if (el.open) this._openRule.add(el.dataset.rule); else this._openRule.delete(el.dataset.rule);
+    }));
     root.querySelectorAll("details.med").forEach((el) => el.addEventListener("toggle", () => {
       this._openMed = this._openMed || new Set();
       if (el.open) this._openMed.add(el.dataset.med); else this._openMed.delete(el.dataset.med);
@@ -653,7 +661,9 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       if (act === "add") {
         const arr = getP(obj, el.dataset.p) || [];
         const el0 = this.media[0] || {};
+        if (el.dataset.tpl === "rule") { this._openRule = new Set([...root.querySelectorAll("details.rule[open]")].map((x) => x.dataset.rule)); }
         arr.push(el.dataset.tpl === "src" ? { from: null, ids: [] } : { id: uid("r"), label: "", type: "qty", effect: "avoid", medium: el0.id, zone: (el0.zones || [{ id: "all" }])[0].id, sources: [{ from: null, ids: [] }] });
+        if (el.dataset.tpl === "rule") this._openRule.add(arr[arr.length - 1].id);
         setP(obj, el.dataset.p, arr);
       } else if (act === "rm") {
         getP(obj, el.dataset.p).splice(Number(el.dataset.i), 1);
@@ -702,8 +712,8 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     }));
     this._bindYearDetail();
     this._bindSim();
-    $("#newproj")?.addEventListener("click", () => { this._pd = { obj: { horizon_years: 25, growth_pct: 0, rules: [] } }; this._render(); });
-    $("#editproj")?.addEventListener("click", () => { const p = this.projects.find((x) => x.id === this._proj); this._pd = { obj: JSON.parse(JSON.stringify(p)) }; this._render(); });
+    $("#newproj")?.addEventListener("click", () => { this._pd = { obj: { horizon_years: 25, growth_pct: 0, rules: [] } }; this._openRule = null; this._render(); });
+    $("#editproj")?.addEventListener("click", () => { const p = this.projects.find((x) => x.id === this._proj); this._pd = { obj: JSON.parse(JSON.stringify(p)) }; this._openRule = null; this._render(); });
     if (!this._pd) return;
     const close = () => { this._pd = null; this._render(); };
     $("#pdx")?.addEventListener("click", close);

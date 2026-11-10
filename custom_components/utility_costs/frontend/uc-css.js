@@ -338,4 +338,28 @@ details.adv { margin-top:16px; } details.adv summary { cursor:pointer; color: va
   .exphead h3 { margin: 0; }
   .exptools { display: flex; gap: 8px; }
   .exptools button, .exptools #add { display: inline-flex; align-items: center; min-height: 36px; box-sizing: border-box; }
+  /* project dialog – same layout as settings */
+  .dialog.pd { width: min(1040px, calc(100vw - 32px)); }
+  .grid.g4 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr)); }
+  .grid.g4 { align-items: end; }
+  .grid.pfields { grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); }
+  details.rule { padding: 0; overflow: hidden; container-type: inline-size; }
+  details.rule > summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  details.rule > summary::-webkit-details-marker { display: none; }
+  details.rule > summary:hover { background: color-mix(in srgb, var(--mc) 8%, transparent); }
+  details.rule[open] > summary { border-bottom: 1px solid var(--divider-color); }
+  details.rule[open] .chev { transform: rotate(90deg); }
+  details.rule .mdot { background: var(--mc); }
+  .rbody { padding: 4px 14px 14px; }
+  .rbody h5 { margin: 18px 0 6px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--secondary-text-color); }
+  .hpdevs { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+  .hpdev { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px 10px; align-items: end; border: 1px solid var(--divider-color); border-radius: 10px; padding: 10px; background: var(--card-background-color); }
+  .hpdev .dname { grid-column: 1 / -1; }
+  .hpdev input { width: 100%; box-sizing: border-box; height: 42px; }
+  .hpdev .drm { align-self: center; padding: 8px; }
+  @container (min-width: 620px) {
+    .hpdev { grid-template-columns: minmax(0, 3fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto; }
+    .hpdev .dname { grid-column: auto; }
+  }
+  @media (max-width: 700px) { .grid.pfields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .grid.pfields .pname { grid-column: 1 / -1; } }
 `;
