@@ -200,3 +200,39 @@ def measured_day(rule: dict, actual: float, temp: float, k: float) -> dict[str, 
         el = probe["el"] / probe["heat"] * heat if probe["heat"] > 0 else heat / cop_at(temp, COP_REF_SCOP, _num(rule.get("cop_pct"), 100.0))
         el *= 1 + _num(rule.get("losses_pct"), 0.0) / 100
     return {"base": base, "gas": avoided, "heat": heat, "el": el}
+
+
+def house_net(house: dict[str, float], exclude: dict[str, float], d: date) -> float | None:
+    """House consumption of a day minus separately metered loads (EV charger, water heater)."""
+    v = house.get(d.isoformat())
+    if v is None:
+        return None
+    return v - (exclude.get(d.isoformat()) or 0.0)
+
+
+def el_baseline(rule: dict, house: dict[str, float], exclude: dict[str, float], days_before: list[date]) -> dict[str, float]:
+    """Average daily house consumption (net) over the last N days before the switch."""
+    n_max = int(_num(rule.get("el_base_days"), 14))
+    vals = [v for v in (house_net(house, exclude, d) for d in sorted(days_before, reverse=True)) if v is not None][:n_max]
+    if len(vals) < 3:
+        return {}
+    mean = sum(vals) / len(vals)
+    sd = (sum((v - mean) ** 2 for v in vals) / len(vals)) ** 0.5
+    return {"el_base": mean, "el_base_n": float(len(vals)), "el_base_sd": sd}
+
+
+def meter_el(rule: dict, house: dict[str, float], exclude: dict[str, float], runs: dict[str, float] | None,
+             d: date, model: dict) -> float | None:
+    """Pump electricity read from the house meter: net consumption above the baseline.
+
+    None when the day has no meter data or no baseline. Zero when the run-hour
+    sensors say no unit was heating that day.
+    """
+    if "el_base" not in model:
+        return None
+    net = house_net(house, exclude, d)
+    if net is None:
+        return None
+    if runs is not None and d.isoformat() in runs and runs[d.isoformat()] <= 0:
+        return 0.0
+    return max(0.0, net - model["el_base"])

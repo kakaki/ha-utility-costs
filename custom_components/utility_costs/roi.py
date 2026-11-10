@@ -158,7 +158,8 @@ def profiles_for(project: dict, daily: dict, start: date, end: date) -> dict[str
             if sw:
                 dd = (daily.get(r["id"]) or {})
                 fit_days = [d for d in days(min(start, sw), end) if d < sw]
-                profiles[r["id"]] = hp.fit_k(r, dd.get("all") or {}, dd.get("temp") or {}, fit_days)
+                profiles[r["id"]] = {**hp.fit_k(r, dd.get("all") or {}, dd.get("temp") or {}, fit_days),
+                                     **hp.el_baseline(r, dd.get("house") or {}, dd.get("exclude") or {}, fit_days)}
             continue
         if r.get("type", "qty") != "qty":
             continue
@@ -228,10 +229,24 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                 if actual is None or not isinstance(model, dict):
                     continue
                 m = hp.measured_day(r, actual, temp, model["k"])
+                dd = daily.get(r["id"]) or {}
+                mel = hp.meter_el(r, dd.get("house") or {}, dd.get("exclude") or {},
+                                  dd.get("run") if "run" in dd else None, d, model)
+                el_model = m["el"]
+                if mel is not None:
+                    m["el"] = mel * (1 + float(r.get("losses_pct") or 0) / 100)
                 pg, pe1 = unit_price(tariffs, r.get("medium"), r.get("zone") or "all", d)
                 pel, pe2 = el_unit_price(tariffs, r, d)
                 price_est |= pe1 or pe2
                 gas_saved, el_cost = m["gas"] * pg, m["el"] * pel
+                rr0 = row["rules"].setdefault(r["id"], {"qty": 0.0, "saved": 0.0})
+                extra = {"m_el_model": el_model, "m_el_model_cost": el_model * pel}
+                if mel is not None:
+                    extra["m_meter_days"] = 1.0
+                if "run" in dd and d.isoformat() in dd["run"]:
+                    extra["m_run_h"] = dd["run"][d.isoformat()]
+                for k, v in extra.items():
+                    rr0[k] = rr0.get(k, 0.0) + v
                 qty = m["gas"]
                 val = gas_saved - el_cost
                 tot = rule_tot[r["id"]]

@@ -35,7 +35,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CACHE_KEY = f"{DOMAIN}.roi"
 CACHE_VERSION = 1
-CALC_VERSION = 4  # bump when roi.* changes its output
+CALC_VERSION = 5  # bump when roi.* changes its output
 CURRENT_MAX_AGE = timedelta(hours=1)
 
 
@@ -98,9 +98,22 @@ class RoiCache:
         pseudo = _pseudo_media(project)
         daily = dict(await self.stats.async_daily(pseudo, start, end)) if pseudo else {}
         for r in project.get("rules") or []:
-            if r.get("type") == "heatpump" and r.get("id") and r.get("temp_ids"):
-                temps = await self.stats.async_daily_mean(list(r["temp_ids"]), start, end)
-                daily[r["id"]] = {**(daily.get(r["id"]) or {}), "temp": temps}
+            if r.get("type") != "heatpump" or not r.get("id"):
+                continue
+            extra: dict = {}
+            if r.get("temp_ids"):
+                extra["temp"] = await self.stats.async_daily_mean(list(r["temp_ids"]), start, end)
+            if r.get("run_ids"):
+                extra["run"] = await self.stats.async_daily_mean(list(r["run_ids"]), start, end, "max")
+            meters = [{"id": key, "statistics": {"all": [{"from": None, "ids": list(r[f"el_{key}_ids"])}]}}
+                      for key in ("house", "exclude") if r.get(f"el_{key}_ids")]
+            if meters:
+                got = await self.stats.async_daily(meters, start, end)
+                for key in ("house", "exclude"):
+                    if key in got:
+                        extra[key] = got[key].get("all") or {}
+            if extra:
+                daily[r["id"]] = {**(daily.get(r["id"]) or {}), **extra}
         return daily
 
     async def _full(self, project: dict, fp: str) -> dict[str, Any]:

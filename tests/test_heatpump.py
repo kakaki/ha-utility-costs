@@ -145,3 +145,23 @@ def test_fit_k_fallbacks():
     gas = {(d0 + timedelta(i)).isoformat(): 5.0 for i in range(20)}
     m2 = hp.fit_k(r, gas, {}, [d0 + timedelta(i) for i in range(20)])  # no sensor → typical temperatures
     assert m2["measured"] == 0.0 and m2["k"] > 0
+
+
+def test_meter_electricity_after_switch():
+    start = date(2024, 1, 1)
+    days_ = [start + timedelta(i) for i in range(30)]
+    temps = {d.isoformat(): 0.0 for d in days_}
+    gas = {d.isoformat(): (6.0 if i < 20 else 2.0) for i, d in enumerate(days_)}
+    house = {d.isoformat(): (17.0 if i < 20 else 37.0) for i, d in enumerate(days_)}
+    exclude = {days_[25].isoformat(): 10.0}          # EV charged 10 kWh on day 25
+    run = {d.isoformat(): (0.0 if i == 27 else 8.0) for i, d in enumerate(days_) if i >= 20}
+    sw = days_[20]
+    r = rule(switch_date=sw.isoformat(), losses_pct=0, el_base_days=14)
+    res = roi.roi({"start_date": "2024-01-01", "rules": [r]}, [], TAR,
+                  {"h": {"all": gas, "temp": temps, "house": house, "exclude": exclude, "run": run}}, days_[-1])
+    v = res["months"][0]["rules"]["h"]
+    assert abs(res["models"]["h"]["el_base"] - 17.0) < 1e-9
+    # 10 measured days: 20 kWh extra each, minus 10 kWh EV on day 25, day 27 no unit heating → 0
+    assert v["m_meter_days"] == 10
+    assert abs(v["m_el"] - (20 * 10 - 10 - 20)) < 0.01
+    assert v["m_el_model"] > 0 and abs(v["m_run_h"] - 8 * 9) < 1e-9

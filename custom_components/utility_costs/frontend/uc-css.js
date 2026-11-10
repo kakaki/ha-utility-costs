@@ -365,4 +365,5 @@ details.adv { margin-top:16px; } details.adv summary { cursor:pointer; color: va
   .sb.meas .sstack { outline: 2px solid var(--success-color, #4FB477); outline-offset: 2px; border-radius: 3px; }
   .sb.meas.part .sstack { outline-style: dashed; }
   .mtag { font-size: 11px; color: var(--success-color, #4FB477); white-space: nowrap; }
+  .simcmp { padding: 14px 16px; margin-top: 14px; } .simcmp h3 { margin: 0 0 10px; font-size: 15px; }
 `;

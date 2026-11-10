@@ -80,6 +80,21 @@ def daily_means(stats: dict[str, list[dict]]) -> dict[str, float]:
     return {d: sum(v) / len(v) for d, v in acc.items()}
 
 
+def daily_sums(stats: dict[str, list[dict]], field: str) -> dict[str, float]:
+    """{day: sum over sensors of the row's field} (e.g. daily max of hour counters)."""
+    acc: dict[str, float] = {}
+    for rows in stats.values():
+        for row in rows:
+            v = row.get(field)
+            if not isinstance(v, (int, float)):
+                continue
+            st = row.get("start")
+            moment = dt_util.utc_from_timestamp(st) if isinstance(st, (int, float)) else st
+            day = dt_util.as_local(moment).date().isoformat()
+            acc[day] = acc.get(day, 0.0) + float(v)
+    return acc
+
+
 class DailyStats:
     """Fetches and caches per-day statistics for configured media."""
 
@@ -100,12 +115,16 @@ class DailyStats:
         self._cache[key] = (_time.monotonic(), result)
         return result
 
-    async def async_daily_mean(self, ids: list[str], start: date, end: date) -> dict[str, float]:
-        """Daily mean of measurement statistics (e.g. outdoor temperature), averaged over ids."""
+    async def async_daily_mean(self, ids: list[str], start: date, end: date, kind: str = "mean") -> dict[str, float]:
+        """Daily mean (or "max", summed over ids) of measurement statistics.
+
+        mean: e.g. outdoor temperature, averaged over the sensors;
+        max:  e.g. "hours in heating mode today" sensors, summed over the sensors.
+        """
         ids = [i for i in ids if i]
         if not ids or start > end:
             return {}
-        key = ("mean", start, end, tuple(sorted(ids)))
+        key = (kind, start, end, tuple(sorted(ids)))
         hit = self._cache.get(key)
         if hit and _time.monotonic() - hit[0] < self.ttl:
             return hit[1]
@@ -118,9 +137,9 @@ class DailyStats:
             set(ids),
             "day",
             None,
-            {"mean"},
+            {kind},
         )
-        result = daily_means(stats)
+        result = daily_means(stats) if kind == "mean" else daily_sums(stats, kind)
         self._cache[key] = (_time.monotonic(), result)
         return result
 
