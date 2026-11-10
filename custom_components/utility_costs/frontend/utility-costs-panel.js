@@ -334,7 +334,7 @@ class UtilityCostsPanel extends HTMLElement {
     }).join("");
     const kpi = `<div class="kpis"><div class="kpi"><span>${esc(t.meter_cost)}</span><b>${this.money(s.meter_total)}</b><small>${esc(t.per_month)}: ${this.money(s.meter_total / n)}</small></div>
       <div class="kpi"><span>${esc(t.invoice_amount)}</span><b>${this.money(s.invoice_total)}</b><small>${cur}</small></div>
-      ${media.map((m) => { const x = s.totals[m.id] || {}; return `<div class="kpi" style="border-top-color:${this.color(m.id)}"><span>${esc(this.mName(m.id))}</span><b>${this.money(x.meter_cost)}</b><small>${esc(t.invoice)}: ${this.money(x.invoice_amount)}${x.balance ? ` · <span class="${x.balance < 0 ? "neg" : "pos"}">${this.money(x.balance)}</span>` : ""}</small></div>`; }).join("")}</div>`;
+      ${media.map((m) => { const x = s.totals[m.id] || {}; return `<div class="kpi" style="border-top-color:${this.color(m.id)}"><span>${esc(this.mName(m.id))}</span><b>${this.money(x.meter_cost)}</b><small>${esc(t.invoice)}: ${this.money(x.invoice_amount)}${x.balance ? ` · <span class="${x.balance < 0 ? "neg" : "pos"}">${this.money(x.balance)}</span>` : ""}</small>${this.partBar ? this.partBar(m.id, x.parts) : ""}</div>`; }).join("")}</div>`;
     const mcards = s.months.slice().reverse().map((mo) => {
       const tot = media.reduce((a, m) => a + (mo.media[m.id]?.cost || 0), 0);
       const name = new Date(mo.month + "-01T00:00:00").toLocaleDateString(this.locale, { month: "long" });

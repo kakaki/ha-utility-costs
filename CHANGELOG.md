@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0
+- Usage split: each medium can have optional parts with their own meters, e.g. gas for heating and gas for hot water, or electricity for the car and the water heater. Set them up in Settings → *Usage split*. Parts are informational and never change the cost: the variable cost of a month is shared in proportion to quantity, and whatever the parts do not cover (days before their meters existed, corrections, other use) is shown as *Not split*.
+- The summary tiles show the split of the year as a bar, and the month details list each part with quantity, share and cost.
+
 ## 0.6.1
 - Security: the `import_file`, `export` and `add_invoice` services are admin-only now (automations keep working). Non-admin users could read or replace the whole register through them.
 - `import_file` only reads files inside the configuration folder: the path is resolved (symlinks, `..`) and checked with `Path.is_relative_to`, so sibling folders such as `/config_backup` are rejected. Resolving and reading happen in the executor, not in the event loop.

@@ -167,6 +167,7 @@ def month_summary(
                 if has_data(medium, daily, d):
                     data_days += 1
             row["media"][medium["id"]] = {
+                **_parts_month(medium, daily, start, end, sum(qty.values()), var),
                 "qty": {z: round(v, 3) for z, v in qty.items()},
                 "qty_total": round(sum(qty.values()), 3),
                 "cost_variable": round(var, 2),
@@ -177,6 +178,34 @@ def month_summary(
             }
         months.append(row)
     return months
+
+
+def _parts_month(medium: dict, daily: dict, start: date, end: date, total: float, var_cost: float) -> dict:
+    """Split a month of a medium into its usage parts (e.g. gas: heating / hot water).
+
+    Parts are informational: they do not change the cost. The variable cost is
+    shared in proportion to quantity; what the parts do not cover (days before
+    their meters existed, corrections, other use) is reported as "rest".
+    """
+    parts = [p for p in medium.get("parts") or [] if p.get("id")]
+    if not parts:
+        return {}
+    mid = medium["id"]
+    out: dict[str, dict[str, float]] = {}
+    covered = 0.0
+    for p in parts:
+        series = daily.get(mid, {}).get(f"part:{p['id']}", {})
+        q = sum(max(0.0, series.get(d.isoformat(), 0.0)) for d in days(start, end))
+        covered += q
+        out[p["id"]] = {"qty": q}
+    scale = total / covered if covered > total > 0 else 1.0
+    unit_cost = var_cost / total if total > 0 else 0.0
+    for v in out.values():
+        v["qty"] = round(v["qty"] * scale, 3)
+        v["cost"] = round(v["qty"] * unit_cost, 2)
+    rest = max(0.0, total - sum(v["qty"] for v in out.values()))
+    out["rest"] = {"qty": round(rest, 3), "cost": round(rest * unit_cost, 2)}
+    return {"parts": out}
 
 
 def invoice_year(inv: dict) -> int | None:
@@ -244,7 +273,14 @@ def summary(data: dict, daily: dict, year: int, today: date) -> dict[str, Any]:
         mid = medium["id"]
         meter_cost = sum(m["media"][mid]["cost"] for m in months)
         inv = [i for i in invoices if i.get("medium") == mid]
+        part_totals: dict[str, dict[str, float]] = {}
+        for m in months:
+            for pid, v in (m["media"][mid].get("parts") or {}).items():
+                acc = part_totals.setdefault(pid, {"qty": 0.0, "cost": 0.0})
+                acc["qty"] = round(acc["qty"] + v["qty"], 3)
+                acc["cost"] = round(acc["cost"] + v["cost"], 2)
         totals[mid] = {
+            **({"parts": part_totals} if part_totals else {}),
             "meter_cost": round(meter_cost, 2),
             "invoice_amount": round(sum(float(i.get("amount") or 0) for i in inv), 2),
             "invoice_qty": round(sum(sum(float(v or 0) for v in (i.get("quantities") or {}).values()) for i in inv), 3),

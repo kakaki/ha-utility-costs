@@ -82,6 +82,7 @@ Miesięczny koszt z liczników obok kwot z faktur i salda rozliczeń dla każdeg
 - **Filtr mediów jako przyciski (chipy)** nad listą, na każdej karcie: możesz zaznaczyć jedno albo kilka mediów
   naraz, **Wszystkie** czyści filtr.
 - **Korekty** dla okresów, gdy licznik był zepsuty lub wymieniony.
+- **Podział zużycia** – opcjonalne liczniki pokazujące, na co idzie medium (gaz na ogrzewanie i na ciepłą wodę, prąd na auto…). Kafelki roku i szczegóły miesiąca pokazują każdą część z jej udziałem w koszcie. Ustawisz to w Ustawieniach → *Podział zużycia*.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/pl/d-tariffs.png" alt="Historia cen prądu i gazu na komputerze" width="100%">

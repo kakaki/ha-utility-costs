@@ -34,6 +34,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         m.zones = m.zones && m.zones.length ? m.zones : [{ id: "all", name: "" }];
         m.statistics = m.statistics || {};
         Object.keys(m.statistics).forEach((z) => { if (!Array.isArray(m.statistics[z])) m.statistics[z] = [m.statistics[z]]; });
+        m.parts = (m.parts || []).map((p) => ({ ...p, statistics: Array.isArray(p.statistics) ? p.statistics : (p.statistics ? [p.statistics] : []) }));
       });
       this._work = w;
     }
@@ -57,6 +58,11 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         <label class="half">${esc(t.m_unit)}<input data-p="media.${i}.unit" value="${esc(m.unit || "")}"></label><label class="half">${esc(t.m_id)}<input value="${esc(m.id)}" disabled></label></div>
         <h4>${esc(t.zones_h)}</h4>${zones}
         <button type="button" class="small" data-act="addzone" data-i="${i}">${esc(t.add_zone)}</button>
+        <h4>${esc(t.parts_h)}</h4><p class="muted small">${esc(t.parts_hint)}</p>
+        ${(m.parts || []).map((p, k) => `<div class="zone"><div class="zhead"><label>${esc(t.part_name)}<input data-p="media.${i}.parts.${k}.name" value="${esc(p.name || "")}"></label>
+          <button type="button" class="link danger" data-act="rmpart" data-i="${i}" data-k="${k}">${esc(t.del_part)}</button></div>
+          <div class="lbl">${esc(t.meters)}</div>${this.srcEditor(`media.${i}.parts.${k}.statistics`, p.statistics, m.unit)}</div>`).join("")}
+        <button type="button" class="small" data-act="addpart" data-i="${i}">${esc(t.add_part)}</button>
         <label class="mt">${esc(t.sync_fixed)}<input list="ucnum" data-sync="${esc(m.id)}.fixed" value="${esc(w.sync[`${m.id}.fixed`] || "")}" placeholder="input_number.…"></label>
       </section>`;
     }).join("");
@@ -95,6 +101,9 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       const st = {};
       zs.forEach((z) => { const c = this._cleanSources(m.statistics[z]); if (c.length) st[z] = c; });
       m.statistics = st;
+      m.parts = (m.parts || []).map((p) => ({ id: p.id, name: String(p.name || "").trim(), statistics: this._cleanSources(p.statistics) }))
+        .filter((p) => p.name || p.statistics.length);
+      if (!m.parts.length) delete m.parts;
     });
     Object.keys(w.sync).forEach((k) => { if (!w.sync[k]) delete w.sync[k]; });
     try { await this.ws({ type: "settings", settings: w }); this._work = null; this._msg = this.t.saved; await this._load(); }
@@ -570,6 +579,10 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         const m = obj.media[Number(el.dataset.i)]; m.zones.push({ id: uid("z"), name: "" });
       } else if (act === "rmzone") {
         const m = obj.media[Number(el.dataset.i)]; const z = m.zones.splice(Number(el.dataset.j), 1)[0]; delete m.statistics[z.id];
+      } else if (act === "addpart") {
+        const m = obj.media[Number(el.dataset.i)]; (m.parts = m.parts || []).push({ id: uid("p"), name: "", statistics: [{ from: null, ids: [] }] });
+      } else if (act === "rmpart") {
+        obj.media[Number(el.dataset.i)].parts.splice(Number(el.dataset.k), 1);
       } else if (act === "addmedium") {
         obj.media.push({ id: uid("m"), name: this.t.new_medium, unit: "", zones: [{ id: "all", name: "" }], statistics: {} });
       } else if (act === "rmmedium") {

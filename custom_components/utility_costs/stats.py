@@ -14,14 +14,21 @@ from homeassistant.util import dt as dt_util
 from .calc import to_date
 
 
+PART_PREFIX = "part:"
+
+
 def _sources(medium: dict[str, Any], zone: str) -> list[dict[str, Any]]:
-    """Sources of a zone, sorted by their start date.
+    """Sources of a zone (or of a usage part, key "part:<id>"), sorted by start date.
 
     A zone maps to a list of {"from": date|None, "ids": [statistic ids],
     "factor": number}; the source with the latest "from" not after a day
     is used for that day, so a meter can be replaced without losing history.
     """
-    raw = (medium.get("statistics") or {}).get(zone) or []
+    if zone.startswith(PART_PREFIX):
+        part = next((p for p in medium.get("parts") or [] if p.get("id") == zone[len(PART_PREFIX):]), None)
+        raw = (part or {}).get("statistics") or []
+    else:
+        raw = (medium.get("statistics") or {}).get(zone) or []
     if isinstance(raw, dict):
         raw = [raw]
     out = []
@@ -35,6 +42,13 @@ def _sources(medium: dict[str, Any], zone: str) -> list[dict[str, Any]]:
             "factor": float(src.get("factor") or 1),
         })
     return sorted(out, key=lambda s: s["from"])
+
+
+def _keys(medium: dict[str, Any]) -> list[str]:
+    """Statistic keys of a medium: its tariff zones and its usage parts."""
+    keys = list(medium.get("statistics") or {})
+    keys += [PART_PREFIX + p["id"] for p in medium.get("parts") or [] if p.get("id")]
+    return keys
 
 
 def _repair_change(change: float, prev_state: float | None, state: float | None) -> float:
@@ -64,7 +78,7 @@ class DailyStats:
         self._cache.clear()
 
     async def async_daily(self, media: list[dict[str, Any]], start: date, end: date) -> dict:
-        key = (start, end, repr([(m["id"], m.get("statistics")) for m in media]))
+        key = (start, end, repr([(m["id"], m.get("statistics"), m.get("parts")) for m in media]))
         hit = self._cache.get(key)
         if hit and _time.monotonic() - hit[0] < self.ttl:
             return hit[1]
@@ -75,7 +89,7 @@ class DailyStats:
     async def _fetch(self, media: list[dict[str, Any]], start: date, end: date) -> dict:
         ids: set[str] = set()
         for medium in media:
-            for zone in (medium.get("statistics") or {}):
+            for zone in _keys(medium):
                 for src in _sources(medium, zone):
                     ids.update(src["ids"])
         if not ids:
@@ -114,7 +128,7 @@ class DailyStats:
 
         daily: dict[str, dict[str, dict[str, float]]] = {}
         for medium in media:
-            for zone in (medium.get("statistics") or {}):
+            for zone in _keys(medium):
                 sources = _sources(medium, zone)
                 if not sources:
                     continue

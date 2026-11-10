@@ -147,7 +147,7 @@ export const makeMore = ({ esc }) => class {
       const x = m.cur?.media?.[md.id]; if (!x || !(x.cost || x.qty_total)) return "";
       const px = m.prev?.media?.[md.id];
       const part = x.days && x.data_days < x.days ? `<small>${esc(tm.md_part.replace("{d}", x.data_days).replace("{n}", x.days))}</small>` : "";
-      return `<div class="rrow"><span class="rlbl"><span><span class="dot" style="background:${this.color(md.id)}"></span>${esc(this.mName(md.id))}</span><small>${this.num(x.qty_total, 1)} ${esc(this.unit(md.id))}${px ? ` · ${esc(tm.prev_year)}: ${this.money(px.cost || 0)}` : ""}</small>${part}</span><b>${this.money(x.cost)}</b></div>`;
+      return `<div class="rrow"><span class="rlbl"><span><span class="dot" style="background:${this.color(md.id)}"></span>${esc(this.mName(md.id))}</span><small>${this.num(x.qty_total, 1)} ${esc(this.unit(md.id))}${px ? ` · ${esc(tm.prev_year)}: ${this.money(px.cost || 0)}` : ""}</small>${part}</span><b>${this.money(x.cost)}</b></div>${this.partRows(md.id, x.parts)}`;
     }).join("");
     const a = `${mk}-01`, b = `${mk}-${String(new Date(Number(c.s.year), Number(k), 0).getDate()).padStart(2, "0")}`;
     const inv = (c.s.invoices || []).filter((v) => (v.period_from || "") <= b && (v.period_to || v.period_from || "") >= a);
@@ -158,6 +158,33 @@ export const makeMore = ({ esc }) => class {
         <div><span>${esc(tm.md_prev)}</span><b>${prevT ? this.money(prevT) : "–"}</b>${diff === null ? "" : `<small class="${diff > 0 ? "neg" : "pos"}">${diff > 0 ? "▲" : "▼"} ${this.num(Math.abs(diff), 1)}%</small>`}</div>
       </div>
       ${rows || `<p class="muted small">${esc(tm.md_none)}</p>`}${invl}`;
+  }
+
+  /* usage parts of a medium (e.g. gas: heating / hot water) */
+  partList(mid, parts) {
+    const md = this.media.find((m) => m.id === mid) || {}, defs = md.parts || [];
+    if (!parts || !defs.length) return [];
+    const total = Object.values(parts).reduce((a, p) => a + (p.qty || 0), 0);
+    const list = defs.map((d, i) => ({ id: d.id, name: d.name || d.id, qty: parts[d.id]?.qty || 0, cost: parts[d.id]?.cost || 0, i }));
+    if (parts.rest?.qty > 0.0005) list.push({ id: "rest", name: this.t.part_rest, qty: parts.rest.qty, cost: parts.rest.cost, i: -1 });
+    return list.map((p) => ({ ...p, pct: total ? (p.qty / total) * 100 : 0 }));
+  }
+
+  partColor(mid, i) {
+    return i < 0 ? "var(--divider-color)" : `color-mix(in srgb, ${this.color(mid)} ${[100, 55, 30, 75][i % 4]}%, var(--card-background-color, #fff))`;
+  }
+
+  partRows(mid, parts) {
+    const list = this.partList(mid, parts);
+    if (!list.length) return "";
+    return `<div class="prows">${list.map((p) => `<div class="prow"><span><i style="background:${this.partColor(mid, p.i)}"></i>${esc(p.name)}</span><small>${this.num(p.qty, 1)} ${esc(this.unit(mid))} · ${this.num(p.pct, 0)}%</small><b>${this.money(p.cost)}</b></div>`).join("")}</div>`;
+  }
+
+  partBar(mid, parts) {
+    const list = this.partList(mid, parts);
+    if (!list.length) return "";
+    return `<div class="pbar" title="${esc(list.map((p) => `${p.name}: ${this.num(p.pct, 0)}%`).join(" · "))}">${list.map((p) => `<span style="width:${p.pct.toFixed(2)}%;background:${this.partColor(mid, p.i)}"></span>`).join("")}</div>
+      <small class="plegend">${list.filter((p) => p.id !== "rest").map((p) => `${esc(p.name)} ${this.num(p.pct, 0)}%`).join(" · ")}</small>`;
   }
 
   _selectMonth(k) {

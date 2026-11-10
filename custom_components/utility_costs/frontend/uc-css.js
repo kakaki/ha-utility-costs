@@ -188,6 +188,15 @@ table.yrs tr.yrow { cursor:pointer; } table.yrs tr.yrow.on td { background: colo
 .rules { padding:4px 14px; border-left-width:1px; }
 .rrow { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--divider-color); }
 .rrow:last-child { border-bottom:none; }
+.prows { display:grid; gap:2px; padding:0 0 8px 14px; border-bottom:1px solid var(--divider-color); margin-top:-6px; }
+.prow { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; align-items:center; font-size:13px; }
+.prow span { display:flex; align-items:center; gap:6px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.prow i { width:10px; height:10px; border-radius:2px; flex:none; }
+.prow small { color: var(--secondary-text-color); font-variant-numeric:tabular-nums; }
+.prow b { font-weight:500; font-variant-numeric:tabular-nums; }
+.pbar { display:flex; gap:2px; height:6px; margin-top:8px; border-radius:3px; overflow:hidden; }
+.pbar span { display:block; height:100%; min-width:2px; }
+.plegend { display:block; margin-top:4px; }
 .rlbl { display:flex; flex-direction:column; } .rlbl small { color: var(--secondary-text-color); font-size:12px; margin-left:14px; }
 tr.projrow td { color: var(--secondary-text-color); }
 table.yrs td small { display:block; font-size:11px; }

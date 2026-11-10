@@ -70,6 +70,7 @@ the current month is kept up to date and a **Recalculate** button forces a full 
 - Tariffs over time: unit price per zone, fixed monthly fee, extra charges per unit or per month.
   Select a medium (chips above the list, several at once are allowed) to see a price-history chart; click a period for the details.
 - Corrections for periods when a meter was broken or replaced.
+- Usage split: optional meters that show what a medium is used for (gas for heating vs. hot water, electricity for the car…). The year tiles and month details show each part with its share of the cost.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/kakaki/ha-utility-costs/main/docs/images/d-tariffs.png" alt="Electricity and gas price history on desktop" width="100%">

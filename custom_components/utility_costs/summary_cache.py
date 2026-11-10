@@ -33,7 +33,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CACHE_KEY = f"{DOMAIN}.summary"
 CACHE_VERSION = 1
-CALC_VERSION = 1  # bump when calc.summary changes its output
+CALC_VERSION = 2  # bump when calc.summary changes its output
 CURRENT_MAX_AGE = timedelta(hours=1)
 
 
