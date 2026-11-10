@@ -42,9 +42,13 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       <h5>${esc(t.hp_switch)}</h5><p class="muted small">${esc(t.hp_switch_hint)}</p>
       <div class="grid g4"><label class="half">${esc(t.hp_switch_lbl)}<input type="${r.switch_date ? "date" : "text"}" data-lazydate data-p="${b}.switch_date" value="${esc(r.switch_date || "")}" placeholder="${esc(t.hp_switch_none)}"></label>
         ${r.switch_date ? n("el_base_days", r.el_base_days, "14", t.hp_base_days) : ""}</div>
-      ${r.switch_date ? `<div class="lbl">${esc(t.hp_house)}</div><p class="muted small">${esc(t.hp_house_hint)}</p>${this.idChips(`${b}.el_house_ids`, r.el_house_ids, "ucstats")}
-        <div class="lbl">${esc(t.hp_excl)}</div><p class="muted small">${esc(t.hp_excl_hint)}</p>${this.idChips(`${b}.el_exclude_ids`, r.el_exclude_ids, "ucstats")}
-        <div class="lbl">${esc(t.hp_run)}</div><p class="muted small">${esc(t.hp_run_hint)}</p>${this.idChips(`${b}.run_ids`, r.run_ids, "ucdur")}` : ""}
+      ${r.switch_date ? `<h5>${esc(t.hp_meters)}</h5><p class="muted small">${esc(t.hp_house_hint)}</p>
+        ${(r.el_meters || []).map((g, gi) => `<div class="mgroup"><div class="grid g4"><label class="half">${esc(t.hp_group_name)}<input data-p="${b}.el_meters.${gi}.name" value="${esc(g.name || "")}"></label></div>
+          <div class="lbl">${esc(t.hp_house)}</div>${this.idChips(`${b}.el_meters.${gi}.house_ids`, g.house_ids, "ucstats")}
+          <div class="lbl">${esc(t.hp_excl)}</div><p class="muted small">${esc(t.hp_excl_hint)}</p>${this.idChips(`${b}.el_meters.${gi}.exclude_ids`, g.exclude_ids, "ucstats")}
+          <div class="lbl">${esc(t.hp_run)}</div><p class="muted small">${esc(t.hp_run_hint)}</p>${this.idChips(`${b}.el_meters.${gi}.run_ids`, g.run_ids, "ucdur")}
+          <button type="button" class="link danger" data-act="rm" data-p="${b}.el_meters" data-i="${gi}">${esc(t.hp_group_del)}</button></div>`).join("")}
+        <button type="button" class="small" data-act="addgroup" data-i="${i}">${esc(t.hp_group_add)}</button>` : ""}
       <h5>${esc(t.hp_devices)}</h5><div class="hpdevs">${devs}</div><button type="button" class="small" data-act="adddev" data-i="${i}">${esc(t.add_dev)}</button>
       <h5>${esc(t.hp_temp)}</h5><p class="muted small">${esc(t.hp_temp_hint)}</p>
       <div class="ids">${(r.temp_ids || []).map((id, j) => `<span class="ent" title="${esc(id)}">${esc(this.entName(id))}<small>${esc(id)}</small><button type="button" class="xs" data-act="rm" data-p="${b}.temp_ids" data-i="${j}">✕</button></span>`).join("")}
@@ -588,6 +592,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         r.el_medium = r.el_medium || (this.media.find((m) => m.id === "electricity") || this.media[0] || {}).id;
         r.devices = r.devices || [{ name: "", kw: 3.5, scop: 4.2, min_temp: -15 }];
         r.sources = r.sources || [{ from: null, ids: [] }];
+        if (!r.el_meters && r.el_house_ids) { r.el_meters = [{ name: "", house_ids: r.el_house_ids, exclude_ids: r.el_exclude_ids || [], run_ids: r.run_ids || [] }]; delete r.el_house_ids; delete r.el_exclude_ids; }
       }
       const m = this.media.find((x) => x.id === r.medium);
       const zsel = typ === "qty" || typ === "heatpump" ? `<label class="half">${esc(t.r_zone)}<select data-p="rules.${i}.zone">${opt(this.zones(r.medium), r.zone, Object.fromEntries(this.zones(r.medium).map((z) => [z, this.zName(r.medium, z)])))}</select></label>` : "";
@@ -685,6 +690,8 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         const m = obj.media[Number(el.dataset.i)]; m.zones.push({ id: uid("z"), name: "" });
       } else if (act === "rmzone") {
         const m = obj.media[Number(el.dataset.i)]; const z = m.zones.splice(Number(el.dataset.j), 1)[0]; delete m.statistics[z.id];
+      } else if (act === "addgroup") {
+        const r = obj.rules[Number(el.dataset.i)]; (r.el_meters = r.el_meters || []).push({ name: "", house_ids: [], exclude_ids: [], run_ids: [] });
       } else if (act === "adddev") {
         const r = obj.rules[Number(el.dataset.i)]; (r.devices = r.devices || []).push({ name: "", kw: 3.5, scop: 4.2, min_temp: -15 });
       } else if (act === "addpart") {
@@ -741,8 +748,10 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       const o = JSON.parse(JSON.stringify(this._pd.obj));
       if (!o.name) { this._pd.error = this.t.name + " *"; this._rerenderKeep(); return; }
       (o.rules || []).forEach((r) => { if (r.sources) r.sources = this._cleanSources(r.sources); if (r.type === "money") { delete r.medium; delete r.zone; delete r.sources; } if (r.type === "fixed") { delete r.zone; delete r.sources; delete r.estimate_per_year; }
-        if (r.type === "heatpump") { delete r.effect; if (!r.switch_date) delete r.switch_date; ["el_house_ids", "el_exclude_ids", "run_ids"].forEach((k) => { r[k] = (r[k] || []).filter(Boolean); if (!r[k].length) delete r[k]; }); r.devices = (r.devices || []).filter((d) => Number(d.kw) > 0); r.temp_ids = (r.temp_ids || []).filter(Boolean); }
-        else { ["switch_date", "el_house_ids", "el_exclude_ids", "run_ids", "el_base_days", "temp_ids", "temp_normals", "share_pct", "kwh_per_unit", "boiler_eff_pct", "cop_pct", "losses_pct", "devices", "el_medium", "el_zones"].forEach((k) => delete r[k]); } });
+        if (r.type === "heatpump") { delete r.effect; if (!r.switch_date) delete r.switch_date; ["el_house_ids", "el_exclude_ids", "run_ids"].forEach((k) => { r[k] = (r[k] || []).filter(Boolean); if (!r[k].length) delete r[k]; });
+          r.el_meters = (r.el_meters || []).map((g) => ({ name: String(g.name || "").trim(), house_ids: (g.house_ids || []).filter(Boolean), exclude_ids: (g.exclude_ids || []).filter(Boolean), run_ids: (g.run_ids || []).filter(Boolean) })).filter((g) => g.house_ids.length);
+          if (!r.el_meters.length) delete r.el_meters; r.devices = (r.devices || []).filter((d) => Number(d.kw) > 0); r.temp_ids = (r.temp_ids || []).filter(Boolean); }
+        else { ["switch_date", "el_meters", "el_house_ids", "el_exclude_ids", "run_ids", "el_base_days", "temp_ids", "temp_normals", "share_pct", "kwh_per_unit", "boiler_eff_pct", "cop_pct", "losses_pct", "devices", "el_medium", "el_zones"].forEach((k) => delete r[k]); } });
       try {
         const saved = await this.ws({ type: "save", collection: "projects", item: o });
         this._proj = saved.id; this._pd = null; this._msg = this.t.saved;

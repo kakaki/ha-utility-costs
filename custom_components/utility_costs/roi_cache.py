@@ -28,6 +28,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
+from . import heatpump as hp
 from . import roi
 from .const import DOMAIN
 
@@ -35,7 +36,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CACHE_KEY = f"{DOMAIN}.roi"
 CACHE_VERSION = 1
-CALC_VERSION = 5  # bump when roi.* changes its output
+CALC_VERSION = 6  # bump when roi.* changes its output
 CURRENT_MAX_AGE = timedelta(hours=1)
 
 
@@ -105,13 +106,17 @@ class RoiCache:
                 extra["temp"] = await self.stats.async_daily_mean(list(r["temp_ids"]), start, end)
             if r.get("run_ids"):
                 extra["run"] = await self.stats.async_daily_mean(list(r["run_ids"]), start, end, "max")
-            meters = [{"id": key, "statistics": {"all": [{"from": None, "ids": list(r[f"el_{key}_ids"])}]}}
-                      for key in ("house", "exclude") if r.get(f"el_{key}_ids")]
-            if meters:
-                got = await self.stats.async_daily(meters, start, end)
-                for key in ("house", "exclude"):
-                    if key in got:
-                        extra[key] = got[key].get("all") or {}
+            groups = []
+            for gi, g in enumerate(hp.meter_groups(r)):
+                meters = [{"id": key, "statistics": {"all": [{"from": None, "ids": list(g.get(f"{key}_ids") or [])}]}}
+                          for key in ("house", "exclude") if g.get(f"{key}_ids")]
+                got = await self.stats.async_daily(meters, start, end) if meters else {}
+                gd = {key: (got.get(key) or {}).get("all") or {} for key in ("house", "exclude")}
+                if g.get("run_ids"):
+                    gd["run"] = await self.stats.async_daily_mean(list(g["run_ids"]), start, end, "max")
+                groups.append(gd)
+            if groups:
+                extra["groups"] = groups
             if extra:
                 daily[r["id"]] = {**(daily.get(r["id"]) or {}), **extra}
         return daily

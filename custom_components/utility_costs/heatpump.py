@@ -221,6 +221,52 @@ def el_baseline(rule: dict, house: dict[str, float], exclude: dict[str, float], 
     return {"el_base": mean, "el_base_n": float(len(vals)), "el_base_sd": sd}
 
 
+def meter_groups(rule: dict) -> list[dict]:
+    """House meter groups: [{name, house_ids, exclude_ids, run_ids}].
+
+    Several groups (e.g. floors, each with its own pumps) are measured apart, so
+    a quiet floor does not hide the pumps of the other one. A rule with only
+    el_house_ids / el_exclude_ids / run_ids is one group.
+    """
+    groups = [g for g in rule.get("el_meters") or [] if g.get("house_ids")]
+    if groups:
+        return groups
+    if rule.get("el_house_ids"):
+        return [{"name": "", "house_ids": rule["el_house_ids"], "exclude_ids": rule.get("el_exclude_ids") or [],
+                 "run_ids": rule.get("run_ids") or []}]
+    return []
+
+
+def group_baselines(rule: dict, groups: list[dict], days_before: list[date]) -> dict:
+    """Baseline of every meter group; {} when none has enough days."""
+    out = [el_baseline(rule, g.get("house") or {}, g.get("exclude") or {}, days_before) for g in groups]
+    if not any(out):
+        return {}
+    return {"el_base": sum(b.get("el_base", 0.0) for b in out),
+            "el_base_sd": sum(b.get("el_base_sd", 0.0) ** 2 for b in out) ** 0.5,
+            "el_base_n": min((b["el_base_n"] for b in out if b), default=0.0),
+            "groups": out}
+
+
+def meter_el_groups(groups: list[dict], d: date, model: dict) -> list[float | None]:
+    """Pump electricity per meter group on a day (None where data is missing)."""
+    res: list[float | None] = []
+    for g, b in zip(groups, model.get("groups") or []):
+        if not b:
+            res.append(None)
+            continue
+        net = house_net(g.get("house") or {}, g.get("exclude") or {}, d)
+        if net is None:
+            res.append(None)
+            continue
+        run = g.get("run")
+        if run is not None and d.isoformat() in run and run[d.isoformat()] <= 0:
+            res.append(0.0)
+            continue
+        res.append(max(0.0, net - b["el_base"]))
+    return res
+
+
 def meter_el(rule: dict, house: dict[str, float], exclude: dict[str, float], runs: dict[str, float] | None,
              d: date, model: dict) -> float | None:
     """Pump electricity read from the house meter: net consumption above the baseline.

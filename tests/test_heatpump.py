@@ -165,3 +165,24 @@ def test_meter_electricity_after_switch():
     assert v["m_meter_days"] == 10
     assert abs(v["m_el"] - (20 * 10 - 10 - 20)) < 0.01
     assert v["m_el_model"] > 0 and abs(v["m_run_h"] - 8 * 9) < 1e-9
+
+
+def test_meter_groups_per_floor():
+    start = date(2024, 1, 1)
+    days_ = [start + timedelta(i) for i in range(30)]
+    temps = {d.isoformat(): 0.0 for d in days_}
+    gas = {d.isoformat(): (6.0 if i < 20 else 2.0) for i, d in enumerate(days_)}
+    up = {d.isoformat(): (6.0 if i < 20 else 4.0 if i % 2 else 14.0) for i, d in enumerate(days_)}    # noisy floor
+    down = {d.isoformat(): (10.0 if i < 20 else 22.0) for i, d in enumerate(days_)}
+    run_up = {d.isoformat(): (0.0 if i % 2 else 5.0) for i, d in enumerate(days_) if i >= 20}
+    r = rule(switch_date=days_[20].isoformat(), losses_pct=0,
+             el_meters=[{"name": "Piętro", "house_ids": ["a"], "run_ids": ["x"]}, {"name": "Parter", "house_ids": ["b"]}])
+    assert len(hp.meter_groups(r)) == 2
+    groups = [{"house": up, "exclude": {}, "run": run_up}, {"house": down, "exclude": {}}]
+    res = roi.roi({"start_date": "2024-01-01", "rules": [r]}, [], TAR,
+                  {"h": {"all": gas, "temp": temps, "groups": groups}}, days_[-1])
+    v = res["months"][0]["rules"]["h"]
+    # upstairs: 5 heating days × 8 kWh (odd days have 0 run hours → 0), downstairs: 10 days × 12 kWh
+    assert abs(v["m_el_g0"] - 40) < 0.01 and abs(v["m_el_g1"] - 120) < 0.01
+    assert abs(v["m_el"] - 160) < 0.01
+    assert len(res["models"]["h"]["groups"]) == 2

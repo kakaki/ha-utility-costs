@@ -145,6 +145,25 @@ def project_start(project: dict, investments: list[dict], today: date) -> date:
     return start
 
 
+def _round_model(m: dict) -> dict:
+    out = {}
+    for k, v in m.items():
+        if isinstance(v, (int, float)):
+            out[k] = round(v, 5)
+        elif isinstance(v, list):
+            out[k] = [_round_model(x) if isinstance(x, dict) else x for x in v]
+    return out
+
+
+def _groups(dd: dict) -> list[dict]:
+    """Meter groups of a heat pump rule's daily data (old single-meter shape too)."""
+    if dd.get("groups"):
+        return dd["groups"]
+    if "house" in dd:
+        return [{"house": dd.get("house") or {}, "exclude": dd.get("exclude") or {}, "run": dd.get("run")}]
+    return []
+
+
 def _rules(project: dict) -> list[dict]:
     return [r for r in project.get("rules") or [] if r.get("id")]
 
@@ -159,7 +178,7 @@ def profiles_for(project: dict, daily: dict, start: date, end: date) -> dict[str
                 dd = (daily.get(r["id"]) or {})
                 fit_days = [d for d in days(min(start, sw), end) if d < sw]
                 profiles[r["id"]] = {**hp.fit_k(r, dd.get("all") or {}, dd.get("temp") or {}, fit_days),
-                                     **hp.el_baseline(r, dd.get("house") or {}, dd.get("exclude") or {}, fit_days)}
+                                     **hp.group_baselines(r, _groups(dd), fit_days)}
             continue
         if r.get("type", "qty") != "qty":
             continue
@@ -230,8 +249,8 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                     continue
                 m = hp.measured_day(r, actual, temp, model["k"])
                 dd = daily.get(r["id"]) or {}
-                mel = hp.meter_el(r, dd.get("house") or {}, dd.get("exclude") or {},
-                                  dd.get("run") if "run" in dd else None, d, model)
+                per_group = hp.meter_el_groups(_groups(dd), d, model)
+                mel = sum(v for v in per_group if v is not None) if any(v is not None for v in per_group) else None
                 el_model = m["el"]
                 if mel is not None:
                     m["el"] = mel * (1 + float(r.get("losses_pct") or 0) / 100)
@@ -243,6 +262,9 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                 extra = {"m_el_model": el_model, "m_el_model_cost": el_model * pel}
                 if mel is not None:
                     extra["m_meter_days"] = 1.0
+                    for gi, v in enumerate(per_group):
+                        if v is not None:
+                            extra[f"m_el_g{gi}"] = v
                 if "run" in dd and d.isoformat() in dd["run"]:
                     extra["m_run_h"] = dd["run"][d.isoformat()]
                 for k, v in extra.items():
@@ -461,5 +483,5 @@ def finalize(project: dict, investments: list[dict], hist: dict[str, Any], today
         "years": year_list,
         "months": months,
         "rules": [{"id": rid, **{k: round(v, 2) for k, v in t.items()}} for rid, t in rule_tot.items()],
-        "models": {rid: {k: round(v, 5) for k, v in m.items()} for rid, m in (hist.get("models") or {}).items()},
+        "models": {rid: _round_model(m) for rid, m in (hist.get("models") or {}).items()},
     }
