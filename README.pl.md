@@ -102,6 +102,7 @@ Projekt ma wydatki i reguły opisujące, co zmienia:
 | **Ilość z licznika** – oszczędność lub dodatkowy koszt, wyceniane taryfą z danego dnia | produkcja PV zastępuje prąd z sieci · energia pompy ciepła × mnożnik zastępuje gaz · ładowanie auta zastępuje paliwo |
 | **Opłata stała** unikana lub dodatkowa | opłata za przyłącze gazowe, której już nie płacisz |
 | **Kwota na rok** | dotacja, ubezpieczenie, serwis |
+| **Symulacja pompy ciepła** – część ciepła z kotła przeniesiona na klimatyzatory / pompy ciepła | gaz na ogrzewanie × 85% → prąd według COP przy temperaturze zewnętrznej danego dnia, osobno dla każdego urządzenia (moc, SCOP, minimalna temperatura pracy) |
 
 - Wykres zwrotu jest klikalny: kliknij rok, żeby zobaczyć oszczędność i wydatki z tego roku, skumulowaną
   oszczędność wobec zainwestowanej kwoty, bilans, rozbicie na miesiące, sumy dla każdej reguły i wydatki
@@ -111,6 +112,11 @@ Projekt ma wydatki i reguły opisujące, co zmienia:
   kolorami na projekty. Szczegóły roku pokazują podział na projekty i reguły, a lista wydatków – projekt każdego zakupu.
 - Szablony **Fotowoltaika**, **Pompa ciepła zamiast gazu** i **Auto elektryczne zamiast paliwa** pozwalają
   szybko zacząć.
+- Szablon **Pompa ciepła zamiast gazu** to symulacja „co by było, gdyby”: na podstawie gazu zużytego na
+  ogrzewanie (część z podziału zużycia) i czujnika temperatury zewnętrznej liczy dzień po dniu, ile dałoby
+  przeniesienie np. 85% ogrzewania na klimatyzatory – niespalony gaz minus prąd dla pomp, wyceniony taryfami
+  z udziałem stref (np. głównie noc przy magazynie energii). Dni bez odczytu temperatury używają typowych
+  temperatur miesięcznych, które można poprawić.
 - Okresy bez danych z liczników są szacowane profilem sezonowym; można dodać roczny wzrost cen.
 - Dla auta elektrycznego można użyć licznika kilometrów i zużycia z komputera auta (np. 15 kWh/100 km zamiast
   7 l/100 km), a sesje z szybkich ładowarek dopisać jako wydatki.

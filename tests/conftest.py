@@ -25,7 +25,7 @@ sys.modules["homeassistant.components.recorder.statistics"].statistics_during_pe
 pkg = types.ModuleType("uc")
 pkg.__path__ = [str(BASE)]
 sys.modules["uc"] = pkg
-for name in ("const", "calc", "roi", "overview", "table_import", "summary_cache", "export", "stats", "import_path"):
+for name in ("const", "calc", "heatpump", "roi", "overview", "table_import", "summary_cache", "export", "stats", "import_path"):
     spec = importlib.util.spec_from_file_location(f"uc.{name}", BASE / f"{name}.py")
     mod = importlib.util.module_from_spec(spec)
     sys.modules[f"uc.{name}"] = mod

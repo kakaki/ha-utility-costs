@@ -66,6 +66,20 @@ def _repair_change(change: float, prev_state: float | None, state: float | None)
     return diff if diff >= 0 else change
 
 
+def daily_means(stats: dict[str, list[dict]]) -> dict[str, float]:
+    """{day: mean} from statistics rows of one or more sensors (sensors averaged)."""
+    acc: dict[str, list[float]] = {}
+    for rows in stats.values():
+        for row in rows:
+            mean = row.get("mean")
+            if not isinstance(mean, (int, float)):
+                continue
+            st = row.get("start")
+            moment = dt_util.utc_from_timestamp(st) if isinstance(st, (int, float)) else st
+            acc.setdefault(dt_util.as_local(moment).date().isoformat(), []).append(float(mean))
+    return {d: sum(v) / len(v) for d, v in acc.items()}
+
+
 class DailyStats:
     """Fetches and caches per-day statistics for configured media."""
 
@@ -83,6 +97,30 @@ class DailyStats:
         if hit and _time.monotonic() - hit[0] < self.ttl:
             return hit[1]
         result = await self._fetch(media, start, end)
+        self._cache[key] = (_time.monotonic(), result)
+        return result
+
+    async def async_daily_mean(self, ids: list[str], start: date, end: date) -> dict[str, float]:
+        """Daily mean of measurement statistics (e.g. outdoor temperature), averaged over ids."""
+        ids = [i for i in ids if i]
+        if not ids or start > end:
+            return {}
+        key = ("mean", start, end, tuple(sorted(ids)))
+        hit = self._cache.get(key)
+        if hit and _time.monotonic() - hit[0] < self.ttl:
+            return hit[1]
+        tz = dt_util.get_default_time_zone()
+        stats = await get_instance(self.hass).async_add_executor_job(
+            statistics_during_period,
+            self.hass,
+            datetime.combine(start, time.min, tz),
+            datetime.combine(end + timedelta(days=1), time.min, tz),
+            set(ids),
+            "day",
+            None,
+            {"mean"},
+        )
+        result = daily_means(stats)
         self._cache[key] = (_time.monotonic(), result)
         return result
 

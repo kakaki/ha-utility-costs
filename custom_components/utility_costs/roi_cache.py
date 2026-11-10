@@ -35,12 +35,13 @@ _LOGGER = logging.getLogger(__name__)
 
 CACHE_KEY = f"{DOMAIN}.roi"
 CACHE_VERSION = 1
-CALC_VERSION = 1  # bump when roi.* changes its output
+CALC_VERSION = 2  # bump when roi.* changes its output
 CURRENT_MAX_AGE = timedelta(hours=1)
 
 
 def fingerprint(data: dict, project: dict, today: date) -> str:
     media = {r.get("medium") for r in project.get("rules") or []}
+    media |= {r.get("el_medium") for r in project.get("rules") or [] if r.get("el_medium")}
     rel = {
         "v": CALC_VERSION,
         "month": f"{today.year:04d}-{today.month:02d}",
@@ -57,7 +58,7 @@ def _pseudo_media(project: dict) -> list[dict]:
     return [
         {"id": r["id"], "statistics": {"all": r.get("sources") or []}}
         for r in project.get("rules") or []
-        if r.get("type", "qty") == "qty" and r.get("sources") and r.get("id")
+        if r.get("type", "qty") in ("qty", "heatpump") and r.get("sources") and r.get("id")
     ]
 
 
@@ -92,10 +93,15 @@ class RoiCache:
         return not at or dt_util.utcnow() - datetime.fromisoformat(at) > CURRENT_MAX_AGE
 
     async def _daily(self, project: dict, start: date, end: date) -> dict:
-        pseudo = _pseudo_media(project)
-        if not pseudo or start > end:
+        if start > end:
             return {}
-        return await self.stats.async_daily(pseudo, start, end)
+        pseudo = _pseudo_media(project)
+        daily = dict(await self.stats.async_daily(pseudo, start, end)) if pseudo else {}
+        for r in project.get("rules") or []:
+            if r.get("type") == "heatpump" and r.get("id") and r.get("temp_ids"):
+                temps = await self.stats.async_daily_mean(list(r["temp_ids"]), start, end)
+                daily[r["id"]] = {**(daily.get(r["id"]) or {}), "temp": temps}
+        return daily
 
     async def _full(self, project: dict, fp: str) -> dict[str, Any]:
         data = self.store.data

@@ -262,4 +262,9 @@ details.adv { margin-top:16px; } details.adv summary { cursor:pointer; color: va
   .actions button.primary { min-width:110px; }
   .actions button { min-height:44px; }
 }
+  .hpnorm { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+  .hpnorm label { font-size: 11px; display: flex; flex-direction: column; gap: 2px; }
+  .hpnorm input { width: 100%; min-width: 0; box-sizing: border-box; }
+  @media (max-width: 520px) { .hpnorm { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  details.mt summary { cursor: pointer; font-size: 13px; color: var(--secondary-text-color); }
 `;

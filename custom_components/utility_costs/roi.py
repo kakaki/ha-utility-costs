@@ -10,6 +10,7 @@ plus "added electricity":
    "estimate_per_year": qty}     # used for days without statistics
   {"type": "fixed", "effect": ..., "medium"}   # fixed fees avoided / added
   {"type": "money", "effect": ..., "amount_per_year", "from"?, "to"?}
+  {"type": "heatpump", ...}   # gas boiler heat moved to heat pumps, see heatpump.py
 
 Quantities from statistics are multiplied by the source factor to get the
 medium's unit (e.g. heat kWh / (10.5 kWh/m3 * 0.9) = gas m3) and priced
@@ -22,7 +23,10 @@ import copy
 from datetime import date
 from typing import Any
 
+from . import heatpump as hp
 from .calc import days, days_in_month, price_for, tariff_on, to_date
+
+TOT_KEYS = ("qty", "saved", "est_qty", "el", "gas_saved", "el_cost", "temp_est_days")
 
 
 def _nearest_tariff(tariffs: list[dict], medium: str, d: date) -> dict | None:
@@ -46,6 +50,23 @@ def unit_price(tariffs: list[dict], medium: str, zone: str, d: date) -> tuple[fl
         if extra.get("per") == "unit":
             p += float(extra.get("amount") or 0) * factor
     return p, est
+
+
+def el_unit_price(tariffs: list[dict], rule: dict, d: date) -> tuple[float, bool]:
+    """Average electricity price of a heat pump rule over its tariff zones."""
+    medium = rule.get("el_medium")
+    zones = hp.el_zones(rule)
+    if zones == [("all", 1.0)]:
+        t = tariff_on(tariffs, medium, d) or _nearest_tariff(tariffs, medium, d)
+        prices = (t or {}).get("prices") or {}
+        if t and "all" not in prices and prices:
+            zones = [(z, 1 / len(prices)) for z in prices]
+    total, est = 0.0, False
+    for zone, frac in zones:
+        p, e = unit_price(tariffs, medium, zone, d)
+        total += p * frac
+        est |= e
+    return total, est
 
 
 def fixed_per_day(tariffs: list[dict], medium: str, d: date) -> tuple[float, bool]:
@@ -109,7 +130,7 @@ def profiles_for(project: dict, daily: dict, start: date, end: date) -> dict[str
     profiles: dict[str, list[float]] = {}
     for r in _rules(project):
         if r.get("type", "qty") != "qty":
-            continue
+            continue  # heatpump rules estimate by degree days
         series = (daily.get(r["id"]) or {}).get("all") or {}
         per_month: dict[str, float] = {}
         md: dict[str, list[int]] = {}
@@ -128,7 +149,7 @@ def profiles_for(project: dict, daily: dict, start: date, end: date) -> dict[str
 def empty_history(project: dict) -> dict[str, Any]:
     return {
         "months": {},
-        "rule_tot": {r["id"]: {"qty": 0.0, "saved": 0.0, "est_qty": 0.0} for r in _rules(project)},
+        "rule_tot": {r["id"]: {k: 0.0 for k in TOT_KEYS} for r in _rules(project)},
         "price_est": False,
     }
 
@@ -168,6 +189,36 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                     est_val = val
                     rule_tot[r["id"]]["est_qty"] += q
                 rule_tot[r["id"]]["qty"] += q
+            elif typ == "heatpump":
+                gas_series = (daily.get(r["id"]) or {}).get("all") or {}
+                temp, from_norm = hp.day_temp(r, (daily.get(r["id"]) or {}).get("temp") or {}, d)
+                gas = gas_series.get(d.isoformat())
+                estimated = gas is None
+                if estimated:
+                    gas = hp.estimate_gas(r, temp)
+                sim = hp.simulate_day(r, gas, temp)
+                if not sim["gas"] and not sim["el"]:
+                    continue
+                pg, pe1 = unit_price(tariffs, r.get("medium"), r.get("zone") or "all", d)
+                pel, pe2 = el_unit_price(tariffs, r, d)
+                price_est |= pe1 or pe2
+                gas_saved, el_cost = sim["gas"] * pg, sim["el"] * pel
+                qty = sim["gas"]
+                val = gas_saved - el_cost
+                tot = rule_tot[r["id"]]
+                tot["qty"] += qty
+                tot["el"] += sim["el"]
+                tot["gas_saved"] += gas_saved
+                tot["el_cost"] += el_cost
+                if from_norm:
+                    tot["temp_est_days"] += 1
+                if estimated:
+                    est_val = val
+                    tot["est_qty"] += qty
+                rr = row["rules"].setdefault(r["id"], {"qty": 0.0, "saved": 0.0})
+                for k, v in (("el", sim["el"]), ("gas_saved", gas_saved), ("el_cost", el_cost)):
+                    rr[k] = rr.get(k, 0.0) + v
+                sign = 1.0  # the rule carries its own sign (gas saved - electricity)
             elif typ == "fixed":
                 f, pe = fixed_per_day(tariffs, r.get("medium"), d)
                 price_est |= pe
@@ -199,15 +250,15 @@ def merge_history(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
             rules = {k: dict(v) for k, v in x["rules"].items()}
             for rid, rr in row["rules"].items():
                 t = rules.setdefault(rid, {"qty": 0.0, "saved": 0.0})
-                t["qty"] += rr["qty"]
-                t["saved"] += rr["saved"]
+                for k, v in rr.items():
+                    t[k] = t.get(k, 0.0) + v
             out["months"][mk] = {"month": mk, "saved": x["saved"] + row["saved"],
                                  "estimated": x["estimated"] + row["estimated"], "rules": rules}
         else:
             out["months"][mk] = row
     for rid in dict.fromkeys([*a["rule_tot"], *b["rule_tot"]]):
         x, y = a["rule_tot"].get(rid, {}), b["rule_tot"].get(rid, {})
-        out["rule_tot"][rid] = {k: x.get(k, 0.0) + y.get(k, 0.0) for k in ("qty", "saved", "est_qty")}
+        out["rule_tot"][rid] = {k: x.get(k, 0.0) + y.get(k, 0.0) for k in TOT_KEYS}
     return out
 
 
@@ -237,8 +288,8 @@ def finalize(project: dict, investments: list[dict], hist: dict[str, Any], today
         m["saved"] = round(m["saved"], 2)
         m["estimated"] = round(m["estimated"], 2)
         for rr in m["rules"].values():
-            rr["qty"] = round(rr["qty"], 3)
-            rr["saved"] = round(rr["saved"], 2)
+            for k in rr:
+                rr[k] = round(rr[k], 3 if k in ("qty", "el") else 2)
 
     # investment cash flow by month
     inv_by_month: dict[str, float] = {}

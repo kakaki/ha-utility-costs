@@ -101,7 +101,7 @@ const X = {
     name: "Name", start_date: "Start date", horizon: "Horizon (years)", growth: "Price growth %/year", note: "Note",
     r_label: "Description", r_type: "Kind", r_effect: "Effect", r_medium: "Medium", r_zone: "Price zone", r_est: "Estimate per year (when no data)",
     r_amount: "Amount per year", r_from: "From", r_to: "To", add_rule: "+ Rule", del_rule: "Remove rule",
-    types: { qty: "Quantity from meter", fixed: "Fixed fee", money: "Amount per year" },
+    types: { qty: "Quantity from meter", fixed: "Fixed fee", money: "Amount per year", heatpump: "Heat pump simulation" },
     effects: { avoid: "Saving", add: "Extra cost" },
     templates: "Start from a template", tpl: { pv: "PV – own electricity", hp: "Heat pump instead of gas", ev: "Electric car instead of fuel", blank: "Empty" },
     tpl_ev_fuel: "Fuel the old car would have burnt", tpl_ev_el: "Electricity charged into the car", fuel: "Fuel",
@@ -109,6 +109,7 @@ const X = {
     no_tariff: "No price (tariff) for: {m} – add it in Tariffs, otherwise this part counts as 0.",
     tpl_pv_rule: "Energy from PV instead of the grid", tpl_hp_gas: "Gas the boiler would have burnt", tpl_hp_el: "Electricity used by the heat pump",
     hint_hp: "Factor for heat → gas: 1 ÷ (kWh per m³ × boiler efficiency), e.g. 1 ÷ (10.5 × 0.9) = 0.106",
+    tpl_hp_rule: "Heat pumps instead of the gas boiler", hp_gas_src: "Gas used for space heating", hp_gas_hint: "Pick the heating part of gas (Settings → Usage split) or the gas meter. Hot water stays on gas.", hp_share: "Heating moved to pumps (%)", hp_cop: "COP correction (%)", hp_kwh: "kWh per gas unit", hp_eff: "Boiler efficiency (%)", hp_devices: "Devices (air conditioners / heat pumps)", hp_dev_name: "Name / room", hp_dev_kw: "Max heat output (kW)", hp_dev_scop: "SCOP", hp_dev_min: "Works down to (°C)", add_dev: "+ Device", del_dev: "Remove device", hp_temp: "Outdoor temperature", hp_temp_hint: "Daily mean from HA statistics. Days without a reading use the typical monthly temperatures below.", hp_normals: "Typical monthly temperatures (°C)", hp_el: "Electricity for the pumps", hp_losses: "Extra losses (%)", hp_zones_hint: "Share of pump energy in each price zone, e.g. mostly the night zone when a home battery charges at night.", hp_gas_saved: "gas", hp_el_cost: "electricity", hp_temp_est: "{n} days with typical temperature",
   },
   pl: {
     tab_inv: "Inwestycje", attachments: "Pliki", prev_open: "Otwórz w nowej karcie", prev_load: "Wczytuję podgląd…", prev_err: "Podgląd niedostępny", prev_hide: "Ukryj podgląd", prev_show: "Pokaż podgląd", add_file: "Dodaj plik / zdjęcie", ai_read: "Odczytaj z AI", ai_reading: "Czytam fakturę… (kilka sekund)", ai_done: "Uzupełnione przez AI – sprawdź podświetlone pola przed zapisem.", ai_hint_new: "Dodaj PDF lub zdjęcie faktury – AI uzupełni pola.", uploading: "Wysyłam…", ai_entity: "AI do odczytu faktur", ai_none: "brak (wyłączone)", ai_err: "AI nie odczytało faktury", net: "Bilans", recalc: "Przelicz", computed_at: "Przeliczono", recalculating: "Przeliczam…",
@@ -127,7 +128,7 @@ const X = {
     name: "Nazwa", start_date: "Data startu", horizon: "Horyzont (lata)", growth: "Wzrost cen %/rok", note: "Notatka",
     r_label: "Opis", r_type: "Rodzaj", r_effect: "Efekt", r_medium: "Medium", r_zone: "Strefa ceny", r_est: "Szacunek na rok (gdy brak danych)",
     r_amount: "Kwota na rok", r_from: "Od", r_to: "Do", add_rule: "+ Reguła", del_rule: "Usuń regułę",
-    types: { qty: "Ilość z licznika", fixed: "Opłata stała", money: "Kwota roczna" },
+    types: { qty: "Ilość z licznika", fixed: "Opłata stała", money: "Kwota roczna", heatpump: "Symulacja pompy ciepła" },
     effects: { avoid: "Oszczędność", add: "Dodatkowy koszt" },
     templates: "Zacznij od szablonu", tpl: { pv: "PV – własny prąd", hp: "Pompa ciepła zamiast gazu", ev: "Auto elektryczne zamiast paliwa", blank: "Pusty" },
     tpl_ev_fuel: "Paliwo, które spaliłoby stare auto", tpl_ev_el: "Prąd naładowany do auta", fuel: "Paliwo",
@@ -135,6 +136,7 @@ const X = {
     no_tariff: "Brak ceny (taryfy) dla: {m} – dodaj ją w Taryfach, inaczej ta część liczy się jako 0.",
     tpl_pv_rule: "Energia z PV zamiast z sieci", tpl_hp_gas: "Gaz, który spaliłby kocioł", tpl_hp_el: "Prąd zużyty przez pompę ciepła",
     hint_hp: "Mnożnik ciepło → gaz: 1 ÷ (kWh na m³ × sprawność kotła), np. 1 ÷ (10,5 × 0,9) = 0,106",
+    tpl_hp_rule: "Pompy ciepła zamiast kotła gazowego", hp_gas_src: "Gaz zużyty na ogrzewanie", hp_gas_hint: "Wybierz część „ogrzewanie” gazu (Ustawienia → Podział zużycia) albo licznik gazu. Ciepła woda zostaje na gazie.", hp_share: "Udział ogrzewania przeniesiony na pompy (%)", hp_cop: "Korekta COP (%)", hp_kwh: "kWh na jednostkę gazu", hp_eff: "Sprawność kotła (%)", hp_devices: "Urządzenia (klimatyzatory / pompy ciepła)", hp_dev_name: "Nazwa / pokój", hp_dev_kw: "Maks. moc grzewcza (kW)", hp_dev_scop: "SCOP", hp_dev_min: "Pracuje do (°C)", add_dev: "+ Urządzenie", del_dev: "Usuń urządzenie", hp_temp: "Temperatura zewnętrzna", hp_temp_hint: "Średnia dobowa ze statystyk HA. Dni bez odczytu używają typowych temperatur miesięcznych poniżej.", hp_normals: "Typowe temperatury miesięczne (°C)", hp_el: "Prąd dla pomp", hp_losses: "Dodatkowe straty (%)", hp_zones_hint: "Udział energii pomp w strefach cen, np. głównie noc, gdy magazyn energii ładuje się w nocy.", hp_gas_saved: "gaz", hp_el_cost: "prąd", hp_temp_est: "{n} dni z typową temperaturą",
   },
   de: {
     tab_inv: "Investitionen", attachments: "Dateien", prev_open: "In neuem Tab öffnen", prev_load: "Vorschau wird geladen…", prev_err: "Vorschau nicht verfügbar", prev_hide: "Vorschau ausblenden", prev_show: "Vorschau anzeigen", add_file: "Datei / Foto hinzufügen", ai_read: "Mit KI auslesen", ai_reading: "Lese die Rechnung… (einige Sekunden)", ai_done: "Von der KI ausgefüllt – markierte Felder vor dem Speichern prüfen.", ai_hint_new: "PDF oder Foto der Rechnung hinzufügen – die KI füllt die Felder aus.", uploading: "Lade hoch…", ai_entity: "KI zum Auslesen von Rechnungen", ai_none: "keine (aus)", ai_err: "Die KI konnte die Rechnung nicht lesen", net: "Saldo", recalc: "Neu berechnen", computed_at: "Berechnet", recalculating: "Berechne…",
@@ -153,7 +155,7 @@ const X = {
     name: "Name", start_date: "Startdatum", horizon: "Horizont (Jahre)", growth: "Preissteigerung %/Jahr", note: "Notiz",
     r_label: "Beschreibung", r_type: "Art", r_effect: "Wirkung", r_medium: "Medium", r_zone: "Preiszone", r_est: "Schätzung pro Jahr (ohne Daten)",
     r_amount: "Betrag pro Jahr", r_from: "Ab", r_to: "Bis", add_rule: "+ Regel", del_rule: "Regel entfernen",
-    types: { qty: "Menge vom Zähler", fixed: "Grundgebühr", money: "Betrag pro Jahr" },
+    types: { qty: "Menge vom Zähler", fixed: "Grundgebühr", money: "Betrag pro Jahr", heatpump: "Wärmepumpen-Simulation" },
     effects: { avoid: "Ersparnis", add: "Mehrkosten" },
     templates: "Mit Vorlage beginnen", tpl: { pv: "PV – eigener Strom", hp: "Wärmepumpe statt Gas", ev: "E-Auto statt Kraftstoff", blank: "Leer" },
     tpl_ev_fuel: "Kraftstoff, den das alte Auto verbraucht hätte", tpl_ev_el: "In das Auto geladener Strom", fuel: "Kraftstoff",
@@ -161,6 +163,7 @@ const X = {
     no_tariff: "Kein Preis (Tarif) für: {m} – bitte unter Tarife ergänzen, sonst zählt dieser Teil als 0.",
     tpl_pv_rule: "PV-Strom statt Netzstrom", tpl_hp_gas: "Gas, das der Kessel verbrannt hätte", tpl_hp_el: "Strom der Wärmepumpe",
     hint_hp: "Faktor Wärme → Gas: 1 ÷ (kWh pro m³ × Kesselwirkungsgrad), z. B. 1 ÷ (10,5 × 0,9) = 0,106",
+    tpl_hp_rule: "Wärmepumpen statt Gaskessel", hp_gas_src: "Gas für die Raumheizung", hp_gas_hint: "Wähle den Heizungsteil des Gases (Einstellungen → Verbrauchsaufteilung) oder den Gaszähler. Warmwasser bleibt auf Gas.", hp_share: "Auf Pumpen verlagerte Heizung (%)", hp_cop: "COP-Korrektur (%)", hp_kwh: "kWh pro Gaseinheit", hp_eff: "Kesselwirkungsgrad (%)", hp_devices: "Geräte (Klimaanlagen / Wärmepumpen)", hp_dev_name: "Name / Raum", hp_dev_kw: "Max. Heizleistung (kW)", hp_dev_scop: "SCOP", hp_dev_min: "Arbeitet bis (°C)", add_dev: "+ Gerät", del_dev: "Gerät entfernen", hp_temp: "Außentemperatur", hp_temp_hint: "Tagesmittel aus HA-Statistiken. Tage ohne Messwert nutzen die typischen Monatstemperaturen unten.", hp_normals: "Typische Monatstemperaturen (°C)", hp_el: "Strom für die Pumpen", hp_losses: "Zusätzliche Verluste (%)", hp_zones_hint: "Anteil der Pumpenenergie je Preiszone, z. B. überwiegend Nacht, wenn ein Heimspeicher nachts lädt.", hp_gas_saved: "Gas", hp_el_cost: "Strom", hp_temp_est: "{n} Tage mit typischer Temperatur",
   },
 };
 for (const l of Object.keys(X)) { Object.assign(I18N[l], X[l]); I18N[l].media.fuel = X[l].fuel; I18N[l].tabs.investments = X[l].tab_inv; I18N[l].f.project_id = X[l].proj; }

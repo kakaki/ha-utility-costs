@@ -90,10 +90,15 @@ A project has expenses and rules describing what it changes:
 | **Quantity from a meter** – saving or extra cost, priced with the tariff of that day | PV production replaces grid electricity · heat-pump energy × factor replaces gas · EV charging replaces fuel |
 | **Fixed fee** avoided or added | gas connection fee you no longer pay |
 | **Amount per year** | subsidy, insurance, service |
+| **Heat pump simulation** – part of the boiler heat moved to air conditioners / heat pumps | gas for heating × 85 % → electricity by COP at the day's outdoor temperature, per device (power, SCOP, lowest working temperature) |
 
 Click a year in the payback chart to see its savings, expenses, balance and a monthly breakdown.
 With more than one project, **All** (selected by default) adds them up on one chart, stacked per project, with a combined payback month.
 Templates for **PV**, **heat pump instead of gas** and **electric car instead of fuel** get you started.
+The heat pump template is a *what-if* simulation: with the heating part of gas (usage split) and an outdoor
+temperature sensor it shows what moving e.g. 85 % of the heating to your air conditioners would have saved, day by day
+(gas not burnt minus electricity for the pumps, priced with your tariffs and zone shares). Days without a temperature
+reading use typical monthly temperatures you can edit.
 Periods without meter data are estimated with a seasonal profile; you can add a yearly price growth.
 
 <p align="center">

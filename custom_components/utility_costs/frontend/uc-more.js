@@ -435,7 +435,7 @@ export const makeMore = ({ esc }) => class {
     const close = () => { this._imp = null; this._render(); };
     $("#impx")?.addEventListener("click", close);
     $("#impcancel")?.addEventListener("click", close);
-    root.querySelectorAll("[data-tpl]").forEach((b) => b.addEventListener("click", () => this._download(`/api/utility_costs/import_template?collection=${this._imp.col}&format=${b.dataset.tpl}`, `import_${this._imp.col}.${b.dataset.tpl}`)));
+    root.querySelectorAll("[data-tpl]").forEach((b) => b.addEventListener("click", () => this._imp && !b.closest("[data-w]") && this._download(`/api/utility_costs/import_template?collection=${this._imp.col}&format=${b.dataset.tpl}`, `import_${this._imp.col}.${b.dataset.tpl}`)));
     $("#impfile")?.addEventListener("change", (e) => { const f = e.target.files?.[0]; if (!f) return; this._imp.file = f; this._imp.res = null; this._impSend(false); });
     $("#impcheck")?.addEventListener("click", () => this._impSend(false));
     $("#impsave")?.addEventListener("click", () => this._impSend(true));

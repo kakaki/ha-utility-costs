@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0
+- Investments: new rule *Heat pump simulation* – "what if part of the heat from the gas boiler came from air conditioners / heat pumps?". It takes the gas used for space heating (ideally the heating part from the 0.7.0 usage split), the outdoor temperature from HA statistics and a list of devices (max heat output, SCOP, lowest working temperature). For every day the boiler heat is computed (gas × kWh per unit × boiler efficiency), the chosen share is moved to the devices in proportion to their power, limited by their power and working range, and the electricity is heat ÷ COP at that day's temperature. The result is gas not burnt (priced with the gas tariff) minus electricity for the pumps (priced per tariff zone share, with optional extra losses e.g. for a home battery).
+- Days without a temperature reading use typical monthly temperatures (editable per rule); days without gas data are estimated from the yearly estimate by heating degree days.
+- The *heat pump instead of gas* template creates this rule, pre-filled with the heating part of gas and an outdoor temperature sensor when found.
+- Rule totals show gas avoided, electricity added and both costs; the year details do too.
+- Fix: choosing a project template no longer also triggered the import-template download handler (console error).
+
 ## 0.7.0
 - Usage split: each medium can have optional parts with their own meters, e.g. gas for heating and gas for hot water, or electricity for the car and the water heater. Set them up in Settings → *Usage split*. Parts are informational and never change the cost: the variable cost of a month is shared in proportion to quantity, and whatever the parts do not cover (days before their meters existed, corrections, other use) is shown as *Not split*.
 - The summary tiles show the split of the year as a bar, and the month details list each part with quantity, share and cost.

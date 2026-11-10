@@ -1,6 +1,7 @@
 /* Utility Costs – settings wizard, investments / ROI */
 export const ALL_P = "__all";
 const PART_COLORS = ["#4FB477", "#3A9BE0", "#E0A53A", "#8E6CC2", "#D2557A", "#2BB5A8"];
+const HP_NORMALS = [-1.5, 0, 3.8, 9.3, 14.1, 17.6, 19.4, 18.9, 14, 8.9, 4, -0.3];
 export const makeExt = ({ esc, getP, setP, uid }) => class {
   /* ---------- shared editors ---------- */
   datalists() {
@@ -8,7 +9,42 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     const stats = Object.values(st).filter((s) => ["total", "total_increasing"].includes(s.attributes?.state_class))
       .map((s) => `<option value="${esc(s.entity_id)}">${esc(s.attributes.friendly_name || "")}${s.attributes.unit_of_measurement ? " · " + esc(s.attributes.unit_of_measurement) : ""}</option>`).join("");
     const nums = Object.keys(st).filter((e) => e.startsWith("input_number.")).map((e) => `<option value="${esc(e)}">${esc(st[e].attributes.friendly_name || "")}</option>`).join("");
-    return `<datalist id="ucstats">${stats}</datalist><datalist id="ucnum">${nums}</datalist>`;
+    const temps = Object.values(st).filter((s) => s.attributes?.device_class === "temperature" && s.attributes?.state_class === "measurement")
+      .map((s) => `<option value="${esc(s.entity_id)}">${esc(s.attributes.friendly_name || "")}</option>`).join("");
+    return `<datalist id="ucstats">${stats}</datalist><datalist id="ucnum">${nums}</datalist><datalist id="uctemp">${temps}</datalist>`;
+  }
+
+  /* heat pump rule: "−120 m³ · +900 kWh" */
+  hpSub(ru, v) {
+    const t = this.t;
+    return `−${this.num(v.qty || 0, 0)} ${esc(this.unit(ru.medium))} · +${this.num(v.el || 0, 0)} ${esc(this.unit(ru.el_medium) || "kWh")}`
+      + (v.gas_saved || v.el_cost ? ` · ${esc(t.hp_gas_saved)} ${this.money(v.gas_saved || 0)} − ${esc(t.hp_el_cost)} ${this.money(v.el_cost || 0)}` : "");
+  }
+
+  hpEditor(r, i) {
+    const t = this.t, b = `rules.${i}`;
+    const el = this.media.find((x) => x.id === r.el_medium);
+    const n = (k, v, ph, lbl, cls = "half") => `<label class="${cls}">${esc(lbl)}<input type="number" step="any" data-num data-p="${b}.${k}" value="${v ?? ""}" placeholder="${ph}"></label>`;
+    const devs = (r.devices || []).map((d, j) => `<div class="src hpdev"><div class="grid">
+        <label class="wide">${esc(t.hp_dev_name)}<input data-p="${b}.devices.${j}.name" value="${esc(d.name || "")}"></label>
+        ${n(`devices.${j}.kw`, d.kw, "3.5", t.hp_dev_kw)}${n(`devices.${j}.scop`, d.scop, "4.2", t.hp_dev_scop)}
+        ${n(`devices.${j}.min_temp`, d.min_temp, "-15", t.hp_dev_min)}</div>
+        <button type="button" class="link danger" data-act="rm" data-p="${b}.devices" data-i="${j}">${esc(t.del_dev)}</button></div>`).join("");
+    const zones = el ? this.zones(el.id).map((z) => n(`el_zones.${z}`, (r.el_zones || {})[z], "", `${this.zName(el.id, z) || z} (%)`)).join("") : "";
+    const norm = HP_NORMALS.map((d, k) => `<label>${esc(new Date(2024, k, 1).toLocaleDateString(this.locale, { month: "short" }))}<input type="number" step="any" data-norm="${i}.${k}" value="${(r.temp_normals || [])[k] ?? ""}" placeholder="${d}"></label>`).join("");
+    return `<div class="lbl">${esc(t.hp_gas_src)}</div><p class="muted small">${esc(t.hp_gas_hint)}</p>${this.srcEditor(`${b}.sources`, r.sources)}
+      <label class="mt">${esc(t.r_est)}<input type="number" step="any" data-num data-p="${b}.estimate_per_year" value="${r.estimate_per_year ?? ""}"></label>
+      <div class="grid mt">${n("share_pct", r.share_pct, "85", t.hp_share)}${n("cop_pct", r.cop_pct, "100", t.hp_cop)}
+        ${n("kwh_per_unit", r.kwh_per_unit, "11", t.hp_kwh)}${n("boiler_eff_pct", r.boiler_eff_pct, "90", t.hp_eff)}</div>
+      <div class="lbl">${esc(t.hp_devices)}</div>${devs}<button type="button" class="small" data-act="adddev" data-i="${i}">${esc(t.add_dev)}</button>
+      <div class="lbl">${esc(t.hp_temp)}</div><p class="muted small">${esc(t.hp_temp_hint)}</p>
+      <div class="ids">${(r.temp_ids || []).map((id, j) => `<span class="ent" title="${esc(id)}">${esc(this.entName(id))}<small>${esc(id)}</small><button type="button" class="xs" data-act="rm" data-p="${b}.temp_ids" data-i="${j}">✕</button></span>`).join("")}
+        <input list="uctemp" class="addent" data-addto="${b}.temp_ids" placeholder="${esc(t.add_entity)}"></div>
+      <details class="mt"><summary>${esc(t.hp_normals)}</summary><div class="hpnorm">${norm}</div></details>
+      <div class="lbl">${esc(t.hp_el)}</div>
+      <div class="grid"><label class="half">${esc(t.r_medium)}<select data-p="${b}.el_medium" data-rr>${this.media.map((x) => `<option value="${esc(x.id)}" ${x.id === r.el_medium ? "selected" : ""}>${esc(this.mName(x.id))}</option>`).join("")}</select></label>
+        ${n("losses_pct", r.losses_pct, "0", t.hp_losses)}${zones}</div>
+      ${zones ? `<p class="muted small">${esc(t.hp_zones_hint)}</p>` : ""}`;
   }
 
   entName(id) { const s = this._hass?.states?.[id]; return s?.attributes?.friendly_name || id; }
@@ -403,10 +439,11 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       return `<div class="ym${m.estimated ? " est" : ""}" title="${esc(this.monthName(m.month))}: ${this.money(m.saved)}${parts ? "\n" + esc(parts) : ""}"><span class="yv">${this.num(m.saved, 0)}</span><i class="${(m.saved || 0) < 0 ? "neg" : ""}" style="height:${Math.max(1, Math.round(h * 0.64))}px"></i><span class="yl">${esc(lbl)}</span></div>`;
     }).join("")}</div>` : "";
     const per = {};
-    months.forEach((m) => Object.entries(m.rules || {}).forEach(([id, v]) => { const a = per[id] = per[id] || { qty: 0, saved: 0 }; a.qty += v.qty || 0; a.saved += v.saved || 0; }));
+    months.forEach((m) => Object.entries(m.rules || {}).forEach(([id, v]) => { const a = per[id] = per[id] || {}; Object.entries(v).forEach(([k, x]) => { a[k] = (a[k] || 0) + (x || 0); }); }));
     const rules = Object.keys(per).length ? `<div class="ysub">${esc(t.yd_rules)}</div>${(p.rules || []).filter((ru) => per[ru.id]).map((ru) => {
       const unit = ru.type === "qty" || !ru.type ? esc(this.unit(ru.medium)) : "";
-      return `<div class="rrow"><span class="rlbl"><span><span class="dot" style="background:${ru.type === "money" ? "var(--primary-color)" : this.color(ru.medium)}"></span>${esc(ru.label || t.types[ru.type || "qty"])}</span>${unit ? `<small>${this.num(per[ru.id].qty, 0)} ${unit}</small>` : ""}</span><b class="${per[ru.id].saved < 0 ? "neg" : ""}">${this.money(per[ru.id].saved)}</b></div>`;
+      const sub = ru.type === "heatpump" ? `<small>${this.hpSub(ru, per[ru.id])}</small>` : unit ? `<small>${this.num(per[ru.id].qty, 0)} ${unit}</small>` : "";
+      return `<div class="rrow"><span class="rlbl"><span><span class="dot" style="background:${ru.type === "money" ? "var(--primary-color)" : this.color(ru.medium)}"></span>${esc(ru.label || t.types[ru.type || "qty"])}</span>${sub}</span><b class="${per[ru.id].saved < 0 ? "neg" : ""}">${this.money(per[ru.id].saved)}</b></div>`;
     }).join("")}` : "";
     const ex = this.projInvestments(this._proj).filter((e) => String(e.date || "").startsWith(`${year}-`)).sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount));
     const exl = ex.length ? `<div class="ysub">${esc(t.yd_exp)} (${ex.length})</div>${ex.slice(0, 6).map((e) => `<div class="rrow"><span class="rlbl"><span>${esc(e.description || t.cats[e.category] || "")}</span><small>${this.date(e.date)}</small></span><b class="${e.amount < 0 ? "pos" : ""}">${this.money(e.amount)}</b></div>`).join("")}${ex.length > 6 ? `<p class="muted small">${esc(t.yd_more.replace("{n}", ex.length - 6))}</p>` : ""}` : "";
@@ -458,6 +495,9 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         const rules = (p.rules || []).map((ru) => {
           const tot = (r.rules || []).find((x) => x.id === ru.id) || {};
           const unit = ru.type === "qty" || !ru.type ? esc(this.unit(ru.medium)) : "";
+          if (ru.type === "heatpump") return `<div class="rrow"><span class="rlbl"><span><span class="dot" style="background:${this.color(ru.medium)}"></span>${esc(ru.label || t.types.heatpump)}</span>
+            <small>${this.hpSub(ru, tot)}${tot.est_qty ? ` · ${esc(t.incl_est.replace("{v}", this.num(tot.est_qty, 0) + " " + this.unit(ru.medium)))}` : ""}${tot.temp_est_days ? ` · ${esc(t.hp_temp_est.replace("{n}", this.num(tot.temp_est_days, 0)))}` : ""}</small></span>
+            <b class="${tot.saved < 0 ? "neg" : ""}">${this.money(tot.saved)}</b></div>`;
           return `<div class="rrow"><span class="rlbl"><span><span class="dot" style="background:${ru.type === "money" ? "var(--primary-color)" : this.color(ru.medium)}"></span>${esc(ru.label || t.types[ru.type || "qty"])}</span>
             ${unit ? `<small>${this.num(tot.qty, 0)} ${unit}${tot.est_qty ? ` · ${esc(t.incl_est.replace("{v}", this.num(tot.est_qty, 0)))}` : ""}</small>` : ""}</span>
             <b class="${tot.saved < 0 ? "neg" : ""}">${this.money(tot.saved)}</b></div>`;
@@ -475,7 +515,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
           <div class="prog card"><div class="ptop"><span>${esc(t.progress)}</span><b>${this.num(r.progress_pct, 0)}%</b></div><div class="pbar"><span style="width:${prog}%"></span></div></div>
           ${this.chart(r)}
           ${rules ? `<h3>${esc(t.rules_h)}</h3><div class="card rules">${rules}</div>` : ""}
-          ${(() => { const miss = [...new Set((p.rules || []).filter((ru) => ru.type !== "money" && ru.medium && !(this._data.tariffs || []).some((tt) => tt.medium === ru.medium)).map((ru) => this.mName(ru.medium)))]; return miss.length ? `<div class="msg err">${esc(t.no_tariff.replace("{m}", miss.join(", ")))}</div>` : ""; })()}
+          ${(() => { const miss = [...new Set((p.rules || []).flatMap((ru) => ru.type === "money" ? [] : [ru.medium, ru.type === "heatpump" ? ru.el_medium : null]).filter((mid) => mid && !(this._data.tariffs || []).some((tt) => tt.medium === mid)).map((mid) => this.mName(mid)))]; return miss.length ? `<div class="msg err">${esc(t.no_tariff.replace("{m}", miss.join(", ")))}</div>` : ""; })()}
           ${r.price_estimated ? `<p class="muted small">ⓘ ${esc(t.price_est)}</p>` : ""}
           <div class="tablewrap"><table class="yrs"><thead><tr><th>${esc(t.year_h)}</th><th class="r">${esc(t.saved_h)}</th><th class="r">${esc(t.net || "Bilans")}</th></tr></thead><tbody>${yrs}</tbody></table></div>`;
       }
@@ -497,9 +537,18 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         { id: uid("r"), label: t.tpl_ev_fuel, type: "qty", effect: "avoid", medium: fuel.id || "fuel", zone: "all", sources: [{ from: null, ids: [], factor: 0.41 }] },
         { id: uid("r"), label: t.tpl_ev_el, type: "qty", effect: "add", medium: el.id, zone: (el.zones || [{ id: "all" }]).slice(-1)[0].id, sources: [{ from: null, ids: [] }] });
     }
-    if (kind === "hp") base.rules.push(
-      { id: uid("r"), label: t.tpl_hp_gas, type: "qty", effect: "avoid", medium: gas.id, zone: "all", sources: [{ from: null, ids: [], factor: 0.106 }] },
-      { id: uid("r"), label: t.tpl_hp_el, type: "qty", effect: "add", medium: el.id, zone: zone0(el), sources: [{ from: null, ids: [] }] });
+    if (kind === "hp") {
+      const parts = gas.parts || [];
+      const heat = parts.find((p) => /ogrz|heat|heiz|\bco\b/i.test(p.name || "")) || parts[0];
+      const src = heat ? JSON.parse(JSON.stringify(heat.statistics || [])) : JSON.parse(JSON.stringify((gas.statistics || {}).all || []));
+      const ez = this.zones(el.id);
+      const temp = Object.values(this._hass?.states || {}).find((s) => s.attributes?.device_class === "temperature" && s.attributes?.state_class === "measurement" && /outdoor|outside|zewn|au(ss|ß)en/i.test(`${s.entity_id} ${s.attributes.friendly_name || ""}`));
+      base.rules.push({ id: uid("r"), label: t.tpl_hp_rule, type: "heatpump", medium: gas.id, zone: "all",
+        sources: src.length ? src : [{ from: null, ids: [] }], temp_ids: temp ? [temp.entity_id] : [],
+        share_pct: 85, kwh_per_unit: 11, boiler_eff_pct: 90, cop_pct: 100, losses_pct: 0,
+        devices: [{ name: "", kw: 3.5, scop: 4.2, min_temp: -15 }],
+        el_medium: el.id, el_zones: Object.fromEntries(ez.map((z) => [z, Math.round(100 / ez.length)])) });
+    }
     return base;
   }
 
@@ -508,12 +557,17 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     const opt = (vals, cur, labels) => vals.map((v) => `<option value="${esc(v)}" ${v === cur ? "selected" : ""}>${esc(labels ? labels[v] || v : v)}</option>`).join("");
     const rules = (o.rules || []).map((r, i) => {
       const typ = r.type || "qty";
+      if (typ === "heatpump") {
+        r.el_medium = r.el_medium || (this.media.find((m) => m.id === "electricity") || this.media[0] || {}).id;
+        r.devices = r.devices || [{ name: "", kw: 3.5, scop: 4.2, min_temp: -15 }];
+        r.sources = r.sources || [{ from: null, ids: [] }];
+      }
       const m = this.media.find((x) => x.id === r.medium);
-      const zsel = typ === "qty" ? `<label class="half">${esc(t.r_zone)}<select data-p="rules.${i}.zone">${opt(this.zones(r.medium), r.zone, Object.fromEntries(this.zones(r.medium).map((z) => [z, this.zName(r.medium, z)])))}</select></label>` : "";
+      const zsel = typ === "qty" || typ === "heatpump" ? `<label class="half">${esc(t.r_zone)}<select data-p="rules.${i}.zone">${opt(this.zones(r.medium), r.zone, Object.fromEntries(this.zones(r.medium).map((z) => [z, this.zName(r.medium, z)])))}</select></label>` : "";
       return `<div class="rule" style="--mc:${typ === "money" ? "var(--primary-color)" : this.color(r.medium)}">
         <div class="grid"><label class="wide">${esc(t.r_label)}<input data-p="rules.${i}.label" value="${esc(r.label || "")}"></label>
-        <label class="half">${esc(t.r_type)}<select data-p="rules.${i}.type" data-rr>${opt(["qty", "fixed", "money"], typ, t.types)}</select></label>
-        <label class="half">${esc(t.r_effect)}<select data-p="rules.${i}.effect">${opt(["avoid", "add"], r.effect || "avoid", t.effects)}</select></label>
+        <label class="half">${esc(t.r_type)}<select data-p="rules.${i}.type" data-rr>${opt(["qty", "fixed", "money", "heatpump"], typ, t.types)}</select></label>
+        ${typ === "heatpump" ? `<label class="half"></label>` : `<label class="half">${esc(t.r_effect)}<select data-p="rules.${i}.effect">${opt(["avoid", "add"], r.effect || "avoid", t.effects)}</select></label>`}
         ${typ !== "money" ? `<label class="half">${esc(t.r_medium)}<select data-p="rules.${i}.medium" data-rr>${opt(this.media.map((x) => x.id), r.medium, Object.fromEntries(this.media.map((x) => [x.id, this.mName(x.id)])))}</select></label>${zsel}` : ""}
         ${typ === "money" ? `<label class="half">${esc(t.r_amount)}<input type="number" step="any" data-num data-p="rules.${i}.amount_per_year" value="${r.amount_per_year ?? ""}"></label><label class="half"></label>
           <label class="half">${esc(t.r_from)}<input type="date" data-p="rules.${i}.from" value="${esc(r.from || "")}"></label><label class="half">${esc(t.r_to)}<input type="date" data-p="rules.${i}.to" value="${esc(r.to || "")}"></label>` : ""}
@@ -521,6 +575,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         ${typ === "qty" ? `<div class="lbl">${esc(t.meters)}${m ? ` → ${esc(m.unit || "")}` : ""}</div>${this.srcEditor(`rules.${i}.sources`, r.sources)}
           ${r.medium === "gas" ? `<p class="muted small">${esc(t.hint_hp)}</p>` : r.medium === "fuel" ? `<p class="muted small">${esc(t.hint_ev)}</p>` : ""}
           <label class="mt">${esc(t.r_est)}<input type="number" step="any" data-num data-p="rules.${i}.estimate_per_year" value="${r.estimate_per_year ?? ""}"></label>` : ""}
+        ${typ === "heatpump" ? this.hpEditor(r, i) : ""}
         <button type="button" class="link danger" data-act="rm" data-p="rules" data-i="${i}">${esc(t.del_rule)}</button></div>`;
     }).join("");
     const tpls = !o.id && !(o.rules || []).length ? `<div class="lbl">${esc(t.templates)}</div><div class="tpls">${["pv", "hp", "ev", "blank"].map((k) => `<button type="button" data-act="tpl" data-tpl="${k}">${esc(t.tpl[k])}</button>`).join("")}</div>` : "";
@@ -559,6 +614,13 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         if (el.hasAttribute("data-rr")) this._rerenderKeep();
       });
     });
+    root.querySelectorAll("[data-norm]").forEach((el) => el.addEventListener("change", () => {
+      const [i, k] = el.dataset.norm.split(".").map(Number), r = this._pd.obj.rules[i];
+      const arr = Array.isArray(r.temp_normals) && r.temp_normals.length === 12 ? r.temp_normals : Array(12).fill(null);
+      arr[k] = el.value === "" ? null : Number(el.value);
+      r.temp_normals = arr.some((v) => v !== null) ? arr : undefined;
+      if (!r.temp_normals) delete r.temp_normals;
+    }));
     root.querySelectorAll("[data-sync]").forEach((el) => el.addEventListener("change", () => { this._workSettings().sync[el.dataset.sync] = el.value.trim(); }));
     root.querySelectorAll("[data-addto]").forEach((el) => el.addEventListener("change", () => {
       const v = el.value.trim(); if (!v) return;
@@ -579,6 +641,8 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
         const m = obj.media[Number(el.dataset.i)]; m.zones.push({ id: uid("z"), name: "" });
       } else if (act === "rmzone") {
         const m = obj.media[Number(el.dataset.i)]; const z = m.zones.splice(Number(el.dataset.j), 1)[0]; delete m.statistics[z.id];
+      } else if (act === "adddev") {
+        const r = obj.rules[Number(el.dataset.i)]; (r.devices = r.devices || []).push({ name: "", kw: 3.5, scop: 4.2, min_temp: -15 });
       } else if (act === "addpart") {
         const m = obj.media[Number(el.dataset.i)]; (m.parts = m.parts || []).push({ id: uid("p"), name: "", statistics: [{ from: null, ids: [] }] });
       } else if (act === "rmpart") {
@@ -630,7 +694,9 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     $("#pdsave")?.addEventListener("click", async () => {
       const o = JSON.parse(JSON.stringify(this._pd.obj));
       if (!o.name) { this._pd.error = this.t.name + " *"; this._rerenderKeep(); return; }
-      (o.rules || []).forEach((r) => { if (r.sources) r.sources = this._cleanSources(r.sources); if (r.type === "money") { delete r.medium; delete r.zone; delete r.sources; } if (r.type === "fixed") { delete r.zone; delete r.sources; delete r.estimate_per_year; } });
+      (o.rules || []).forEach((r) => { if (r.sources) r.sources = this._cleanSources(r.sources); if (r.type === "money") { delete r.medium; delete r.zone; delete r.sources; } if (r.type === "fixed") { delete r.zone; delete r.sources; delete r.estimate_per_year; }
+        if (r.type === "heatpump") { delete r.effect; r.devices = (r.devices || []).filter((d) => Number(d.kw) > 0); r.temp_ids = (r.temp_ids || []).filter(Boolean); }
+        else { ["temp_ids", "temp_normals", "share_pct", "kwh_per_unit", "boiler_eff_pct", "cop_pct", "losses_pct", "devices", "el_medium", "el_zones"].forEach((k) => delete r[k]); } });
       try {
         const saved = await this.ws({ type: "save", collection: "projects", item: o });
         this._proj = saved.id; this._pd = null; this._msg = this.t.saved;
