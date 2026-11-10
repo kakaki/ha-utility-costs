@@ -57,7 +57,10 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       <h5>${esc(t.hp_el)}</h5>
       <div class="grid g4"><label class="half">${esc(t.r_medium)}<select data-p="${b}.el_medium" data-rr>${this.media.map((x) => `<option value="${esc(x.id)}" ${x.id === r.el_medium ? "selected" : ""}>${esc(this.mName(x.id))}</option>`).join("")}</select></label>
         ${n("losses_pct", r.losses_pct, "0", t.hp_losses)}${zones}</div>
-      ${zones ? `<p class="muted small">${esc(t.hp_zones_hint)}</p>` : ""}`;
+      ${zones ? `<p class="muted small">${esc(t.hp_zones_hint)}</p>` : ""}
+      <h5>${esc(t.hp_pv)}</h5><p class="muted small">${esc(t.hp_pv_hint)}</p>
+      ${this.idChips(`${b}.pv_ids`, r.pv_ids, "ucstats")}
+      <div class="grid g4 mt">${n("pv_price", r.pv_price, "0", t.hp_pv_price)}${n("house_kwh_day", r.house_kwh_day, "", t.hp_house_day)}</div>`;
   }
 
   idChips(path, list, dl) {
@@ -748,10 +751,10 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       const o = JSON.parse(JSON.stringify(this._pd.obj));
       if (!o.name) { this._pd.error = this.t.name + " *"; this._rerenderKeep(); return; }
       (o.rules || []).forEach((r) => { if (r.sources) r.sources = this._cleanSources(r.sources); if (r.type === "money") { delete r.medium; delete r.zone; delete r.sources; } if (r.type === "fixed") { delete r.zone; delete r.sources; delete r.estimate_per_year; }
-        if (r.type === "heatpump") { delete r.effect; if (!r.switch_date) delete r.switch_date; ["el_house_ids", "el_exclude_ids", "run_ids"].forEach((k) => { r[k] = (r[k] || []).filter(Boolean); if (!r[k].length) delete r[k]; });
+        if (r.type === "heatpump") { delete r.effect; if (!r.switch_date) delete r.switch_date; ["el_house_ids", "el_exclude_ids", "run_ids", "pv_ids"].forEach((k) => { r[k] = (r[k] || []).filter(Boolean); if (!r[k].length) delete r[k]; });
           r.el_meters = (r.el_meters || []).map((g) => ({ name: String(g.name || "").trim(), house_ids: (g.house_ids || []).filter(Boolean), exclude_ids: (g.exclude_ids || []).filter(Boolean), run_ids: (g.run_ids || []).filter(Boolean) })).filter((g) => g.house_ids.length);
           if (!r.el_meters.length) delete r.el_meters; r.devices = (r.devices || []).filter((d) => Number(d.kw) > 0); r.temp_ids = (r.temp_ids || []).filter(Boolean); }
-        else { ["switch_date", "el_meters", "el_house_ids", "el_exclude_ids", "run_ids", "el_base_days", "temp_ids", "temp_normals", "share_pct", "kwh_per_unit", "boiler_eff_pct", "cop_pct", "losses_pct", "devices", "el_medium", "el_zones"].forEach((k) => delete r[k]); } });
+        else { ["switch_date", "pv_ids", "pv_price", "house_kwh_day", "el_meters", "el_house_ids", "el_exclude_ids", "run_ids", "el_base_days", "temp_ids", "temp_normals", "share_pct", "kwh_per_unit", "boiler_eff_pct", "cop_pct", "losses_pct", "devices", "el_medium", "el_zones"].forEach((k) => delete r[k]); } });
       try {
         const saved = await this.ws({ type: "save", collection: "projects", item: o });
         this._proj = saved.id; this._pd = null; this._msg = this.t.saved;

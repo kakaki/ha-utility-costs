@@ -23,6 +23,10 @@ Symulacja liczy każdy dzień osobno:
 4. **Wynik** = niespalony gaz × cena gazu − prąd × cena prądu. Cena prądu uwzględnia podział na strefy taryfy,
    np. 70% noc i 30% dzień.
 
+5. **Własne PV (opcjonalnie):** prąd klimatyzatorów pokryty nadwyżką z PV nie jest kupowany. Nadwyżka to
+   produkcja dnia minus zużycie domu bez klimatyzatorów. W dniach bez danych z PV brana jest produkcja z tego
+   samego dnia rok wcześniej (w tabeli oznaczenie ↺).
+
 Ciepła woda i opłata stała za gaz zostają bez zmian, bo kocioł dalej grzeje wodę.
 
 Po dacie **„Klimatyzatory grzeją od”** wynik przestaje być symulacją i staje się **pomiarem**:
@@ -43,6 +47,7 @@ Po dacie **„Klimatyzatory grzeją od”** wynik przestaje być symulacją i st
 | D | Licznik prądu domu, najlepiej osobno dla pięter (`total_increasing`, kWh) | prąd klimatyzatorów w okresie pomiaru | opcjonalne |
 | E | Liczniki odbiorników do odjęcia: pralka, suszarka, zmywarka… | mniej szumu w pomiarze | opcjonalne |
 | F | Godziny pracy klimatyzatorów w trybie grzania na dobę | dzień bez grzania = brak prądu klimatyzatorów | opcjonalne |
+| G | Licznik produkcji PV (`total_increasing`, kWh) | część prądu klimatyzatorów za darmo | opcjonalne |
 
 Integracja czyta wyłącznie **statystyki długoterminowe** HA. Czujnik bez `state_class` nie trafi do statystyk,
 a recorder trzyma zwykłą historię tylko kilka dni. Dlatego wszystkie czujniki poniżej mają ustawione `state_class`.
@@ -176,6 +181,22 @@ Integracja bierze z niego **maksimum doby**, czyli liczbę godzin z danego dnia.
 tryb, a nie ciągłą pracę sprężarki. Dlatego godziny służą tylko jako filtr: w dniu z 0 godzin nadwyżka zużycia
 nie jest przypisywana klimatyzacji.
 
+**Pomiar liczy tylko pełne doby.** Bieżący dzień wchodzi do pomiaru dopiero następnego dnia. Dzień przejścia
+jest mieszany (rano piec, wieczorem klimatyzatory), więc jako datę przejścia najlepiej podać dzień następny.
+Faktyczny udział klimatyzatorów pokazuje się od 3 pełnych dni pomiaru.
+
+## Krok PV: własna fotowoltaika (opcjonalnie)
+
+Wskaż licznik produkcji PV, np. `sensor.pv_energy_total` (`total_increasing`, kWh). Dla każdego dnia:
+
+- nadwyżka PV = produkcja − zużycie domu bez klimatyzatorów. Zużycie bierzemy z liczników grup z kroku D,
+  a gdy ich nie ma, z pola **Zużycie domu na dobę bez klimatyzacji**;
+- prąd klimatyzatorów do wysokości nadwyżki nie jest kupowany. Wycenia go pole **Wartość energii z PV**:
+  0 oznacza energię darmową, a cenę wpisz, gdy nadwyżkę możesz sprzedać.
+
+Zimą nadwyżki zwykle nie ma, bo PV produkuje mało, a dom zużywa swoje. PV robi różnicę głównie we wrześniu,
+październiku, marcu i kwietniu. Tabela miesięcy pokazuje produkcję PV i ile z niej poszło na klimatyzatory.
+
 ---
 
 ## Krok G: projekt w panelu
@@ -196,7 +217,8 @@ Szablon sam podpina część „Ogrzewanie” gazu i czujnik temperatury, jeśli
 | Urządzenia | 4 klimatyzatory: moc maks. 3,2–5,8 kW, SCOP 4,0–4,3, pracują do −15…−20 °C | dane z karty katalogowej (moc grzewcza maks.) |
 | Temperatura zewnętrzna | `sensor.outdoor_temperature` | krok B |
 | Prąd dla pomp | medium Prąd, noc 70 % / dzień 30 %, straty 0 % | np. noc 90 % i straty 6 %, gdy prąd idzie przez magazyn energii |
-| Klimatyzatory grzeją od | 2026-11-01 | puste = tylko symulacja |
+| Własne PV | `sensor.pv_energy_total`, wartość 0 | krok PV |
+| Klimatyzatory grzeją od | 2026-11-01 | puste = tylko symulacja; najlepiej dzień po faktycznym przejściu |
 | Liczniki prądu (grupy) | Piętro, Parter (tabela w kroku D) | opcjonalne |
 
 Wydatki dodajesz w sekcji **Wydatki** pod widokiem, np. zakup i montaż. Bez wydatków projekt pokazuje samą
@@ -209,7 +231,10 @@ oszczędność.
 - *Z klimatyzacją: gaz + prąd*: koszt gazu, który zostaje, plus koszt prądu dla klimatyzatorów.
 - *Oszczędność*: różnica tych dwóch kwot.
 
-**Suwaki** zmieniają wynik od razu. **Zapisz w projekcie** utrwala wybrane ustawienia.
+Gdy sezon ma oba okresy, kafelek oszczędności pokazuje osobno część symulowaną i zmierzoną, np.
+„symulacja: 225 · pomiar (27 dni): 195”.
+
+**Suwaki** zmieniają wynik od razu, ale tylko w części symulowanej. **Zapisz w projekcie** utrwala wybrane ustawienia.
 
 **Wykres:** pomarańczowe słupki to gaz, który zostaje, niebieskie to prąd, a przerywana linia to koszt
 „wszystko gazem”. Liczba nad słupkiem to oszczędność danego miesiąca.

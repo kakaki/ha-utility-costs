@@ -36,7 +36,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CACHE_KEY = f"{DOMAIN}.roi"
 CACHE_VERSION = 1
-CALC_VERSION = 6  # bump when roi.* changes its output
+CALC_VERSION = 8  # bump when roi.* changes its output
 CURRENT_MAX_AGE = timedelta(hours=1)
 
 
@@ -106,6 +106,10 @@ class RoiCache:
                 extra["temp"] = await self.stats.async_daily_mean(list(r["temp_ids"]), start, end)
             if r.get("run_ids"):
                 extra["run"] = await self.stats.async_daily_mean(list(r["run_ids"]), start, end, "max")
+            if r.get("pv_ids"):
+                got = await self.stats.async_daily([{"id": "pv", "statistics": {"all": [{"from": None, "ids": list(r["pv_ids"])}]}}],
+                                                   start - timedelta(days=366), end)
+                extra["pv"] = (got.get("pv") or {}).get("all") or {}
             groups = []
             for gi, g in enumerate(hp.meter_groups(r)):
                 meters = [{"id": key, "statistics": {"all": [{"from": None, "ids": list(g.get(f"{key}_ids") or [])}]}}
@@ -134,7 +138,7 @@ class RoiCache:
             closed_end = first - timedelta(days=1)
             closed = (roi.history(project, data["tariffs"], daily, start, closed_end, profiles)
                       if start <= closed_end else roi.empty_history(project))
-            cur = roi.history(project, data["tariffs"], daily, max(start, first), today, profiles)
+            cur = roi.history(project, data["tariffs"], daily, max(start, first), today, profiles, today)
             result = roi.finalize(project, invs, roi.merge_history(closed, cur), today)
             return profiles, closed, result
 
@@ -154,7 +158,7 @@ class RoiCache:
         daily = await self._daily(project, start, today)
 
         def work() -> dict:
-            cur = roi.history(project, data["tariffs"], daily, start, today, entry["profiles"])
+            cur = roi.history(project, data["tariffs"], daily, start, today, entry["profiles"], today)
             return roi.finalize(project, invs, roi.merge_history(entry["closed"], cur), today)
 
         result = await self.hass.async_add_executor_job(work)

@@ -126,7 +126,7 @@ def test_fit_k_and_measured_period():
     r = rule(switch_date=sw.isoformat(), losses_pct=0)
     m = hp.fit_k(r, gas, temps, [d for d in days_ if d < sw])
     assert abs(m["k"] - k_true) < 1e-9 and m["measured"] == 1.0
-    res = roi.roi({"start_date": "2024-01-01", "rules": [r]}, [], TAR, {"h": {"all": gas, "temp": temps}}, days_[-1])
+    res = roi.roi({"start_date": "2024-01-01", "rules": [r]}, [], TAR, {"h": {"all": gas, "temp": temps}}, days_[-1] + timedelta(1))
     feb = [x for x in res["months"] if x["month"] == "2024-02"][0]["rules"]["h"]
     # Feb 1..9 are all measured: avoided gas = 80 % of the baseline
     assert feb["m_days"] == 9
@@ -158,7 +158,7 @@ def test_meter_electricity_after_switch():
     sw = days_[20]
     r = rule(switch_date=sw.isoformat(), losses_pct=0, el_base_days=14)
     res = roi.roi({"start_date": "2024-01-01", "rules": [r]}, [], TAR,
-                  {"h": {"all": gas, "temp": temps, "house": house, "exclude": exclude, "run": run}}, days_[-1])
+                  {"h": {"all": gas, "temp": temps, "house": house, "exclude": exclude, "run": run}}, days_[-1] + timedelta(1))
     v = res["months"][0]["rules"]["h"]
     assert abs(res["models"]["h"]["el_base"] - 17.0) < 1e-9
     # 10 measured days: 20 kWh extra each, minus 10 kWh EV on day 25, day 27 no unit heating → 0
@@ -180,9 +180,44 @@ def test_meter_groups_per_floor():
     assert len(hp.meter_groups(r)) == 2
     groups = [{"house": up, "exclude": {}, "run": run_up}, {"house": down, "exclude": {}}]
     res = roi.roi({"start_date": "2024-01-01", "rules": [r]}, [], TAR,
-                  {"h": {"all": gas, "temp": temps, "groups": groups}}, days_[-1])
+                  {"h": {"all": gas, "temp": temps, "groups": groups}}, days_[-1] + timedelta(1))
     v = res["months"][0]["rules"]["h"]
     # upstairs: 5 heating days × 8 kWh (odd days have 0 run hours → 0), downstairs: 10 days × 12 kWh
     assert abs(v["m_el_g0"] - 40) < 0.01 and abs(v["m_el_g1"] - 120) < 0.01
     assert abs(v["m_el"] - 160) < 0.01
     assert len(res["models"]["h"]["groups"]) == 2
+
+
+def test_pv_covers_part_of_pump_electricity():
+    d0 = date(2025, 3, 1)
+    days_ = [d0 + timedelta(i) for i in range(10)]
+    temps = {d.isoformat(): 5.0 for d in days_}
+    gas = {d.isoformat(): 4.0 for d in days_}
+    # PV only last year: this year's days fall back to the same date a year earlier
+    pv_ly = {(d.replace(year=2024)).isoformat(): 20.0 for d in days_}
+    groups = [{"house": {d.isoformat(): 12.0 for d in days_}, "exclude": {}}]
+    r = rule(pv_ids=["pv"], losses_pct=0, share_pct=100, el_meters=[{"name": "", "house_ids": ["h"]}])
+    base = roi.roi({"start_date": d0.isoformat(), "rules": [{**r, "pv_ids": []}]}, [], TAR,
+                   {"h": {"all": gas, "temp": temps, "groups": groups}}, days_[-1])
+    res = roi.roi({"start_date": d0.isoformat(), "rules": [r]}, [], TAR,
+                  {"h": {"all": gas, "temp": temps, "groups": groups, "pv": pv_ly}}, days_[-1])
+    v = res["months"][0]["rules"]["h"]
+    assert v["pv"] == 200 and v["pv_ly_days"] == 10
+    el_day = v["el"] / 10
+    cov_day = min(el_day, 20 - 12)
+    assert abs(v["pv_cov"] - cov_day * 10) < 0.01
+    assert res["saved"] > base["saved"]
+    assert abs(v["pvc:5"] - v["pv_cov"]) < 0.05        # grid point k=1.0 equals the actual case
+    assert hp.pv_available({}, 5.0, None, {"house_avg": 7.0}) == 0.0
+    assert hp.pv_available({"house_kwh_day": 3}, 5.0, None, None) == 2.0
+
+
+def test_current_day_not_measured():
+    d0 = date(2024, 1, 1)
+    days_ = [d0 + timedelta(i) for i in range(25)]
+    temps = {d.isoformat(): 0.0 for d in days_}
+    gas = {d.isoformat(): 9.0 for d in days_}
+    r = rule(switch_date=days_[20].isoformat())
+    res = roi.roi({"start_date": d0.isoformat(), "rules": [r]}, [], TAR, {"h": {"all": gas, "temp": temps}}, days_[-1])
+    v = res["months"][0]["rules"]["h"]
+    assert v["m_days"] == 4          # days 20..23; day 24 is today, still running

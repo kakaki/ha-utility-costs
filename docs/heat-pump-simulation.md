@@ -22,6 +22,10 @@ The simulation works day by day:
 4. **Result** = gas not burnt × gas price − electricity × electricity price. The electricity price follows the
    share per tariff zone, e.g. 70 % night and 30 % day.
 
+5. **Own PV (optional):** pump electricity covered by the PV surplus is not bought. The surplus is the day's
+   production minus the house's own use without the pumps. Days without PV data use the same day a year earlier
+   (marked ↺ in the table).
+
 Hot water and the gas fixed fee stay the same, because the boiler still heats water.
 
 After the **"Pumps heat since"** date the result is no longer simulated but **measured**:
@@ -42,6 +46,7 @@ After the **"Pumps heat since"** date the result is no longer simulated but **me
 | D | House electricity meter, ideally per floor (`total_increasing`, kWh) | measured pump electricity | optional |
 | E | Meters of loads to subtract: washing machine, dryer, dishwasher… | less noise | optional |
 | F | Hours per day each unit is in heating mode | a day without heating = no pump electricity | optional |
+| G | PV production meter (`total_increasing`, kWh) | part of the pump electricity for free | optional |
 
 The integration reads **long-term statistics** only. A sensor without `state_class` never gets them, and the
 recorder keeps plain history for only a few days. That is why every sensor below sets `state_class`.
@@ -172,6 +177,23 @@ The integration takes the **daily maximum**, which is the hours of that day. `he
 that the compressor runs all the time. That is why the hours are only a filter: on a day with 0 hours, extra
 consumption is not given to the pumps.
 
+**Only complete days are measured.** The current day joins the measurement the next day. The switch day is mixed
+(boiler in the morning, pumps in the evening), so use the next day as the switch date. The real share of the pumps
+is shown from 3 complete measured days.
+
+## Step PV: own photovoltaics (optional)
+
+Pick the PV production meter, e.g. `sensor.pv_energy_total` (`total_increasing`, kWh). For each day:
+
+- PV surplus = production − the house's use without the pumps. The use comes from the group meters of step D,
+  or from **House use per day without pumps** when there are none;
+- pump electricity up to the surplus is not bought. **Value of PV energy** prices it: 0 means free energy, and
+  enter a price if you could sell the surplus instead.
+
+In winter there is usually no surplus, because PV produces little and the house uses its own share. PV matters
+mainly in September, October, March and April. The monthly table shows PV production and how much of it went to
+the pumps.
+
 ---
 
 ## Step G: the project in the panel
@@ -192,7 +214,8 @@ The template links the "Heating" gas part and an outdoor temperature sensor when
 | Devices | 4 units: max 3.2–5.8 kW, SCOP 4.0–4.3, down to −15…−20 °C | datasheet (maximum heating output) |
 | Outdoor temperature | `sensor.outdoor_temperature` | step B |
 | Electricity for the pumps | Electricity, night 70 % / day 30 %, losses 0 % | e.g. night 90 % and 6 % losses when power goes through a home battery |
-| Pumps heat since | 2026-11-01 | empty = simulation only |
+| Own PV | `sensor.pv_energy_total`, value 0 | step PV |
+| Pumps heat since | 2026-11-01 | empty = simulation only; ideally the day after the real switch |
 | Electricity meters (groups) | Upstairs, Ground floor (table in step D) | optional |
 
 Add expenses in the **Expenses** section below the view, e.g. purchase and installation. Without expenses the
@@ -205,7 +228,10 @@ project shows the saving only.
 - *With heat pumps: gas + electricity*: the gas that remains plus the pump electricity.
 - *Saving*: the difference between the two.
 
-**Sliders** change the result instantly. **Save to project** stores the chosen settings.
+When a season has both periods, the saving tile shows the simulated and the measured part apart, e.g.
+"simulated: 225 · measured (27 days): 195".
+
+**Sliders** change the result instantly, but only in the simulated part. **Save to project** stores the chosen settings.
 
 **Chart:** orange bars are the gas that remains, blue bars are electricity, and the dashed line is the all-gas
 cost. The number above a bar is that month's saving.

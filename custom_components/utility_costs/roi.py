@@ -174,11 +174,17 @@ def profiles_for(project: dict, daily: dict, start: date, end: date) -> dict[str
     for r in _rules(project):
         if r.get("type") == "heatpump":
             sw = hp.switch_date(r)
+            dd = (daily.get(r["id"]) or {})
+            before = [d for d in days(min(start, sw or end), end) if not sw or d < sw]
+            model: dict = {}
             if sw:
-                dd = (daily.get(r["id"]) or {})
-                fit_days = [d for d in days(min(start, sw), end) if d < sw]
-                profiles[r["id"]] = {**hp.fit_k(r, dd.get("all") or {}, dd.get("temp") or {}, fit_days),
-                                     **hp.group_baselines(r, _groups(dd), fit_days)}
+                model.update(hp.fit_k(r, dd.get("all") or {}, dd.get("temp") or {}, before))
+                model.update(hp.group_baselines(r, _groups(dd), before))
+            ha = hp.house_avg(_groups(dd), before)
+            if ha is not None:
+                model["house_avg"] = ha
+            if model:
+                profiles[r["id"]] = model
             continue
         if r.get("type", "qty") != "qty":
             continue
@@ -206,7 +212,7 @@ def empty_history(project: dict) -> dict[str, Any]:
 
 
 def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: date,
-            profiles: dict[str, list[float]]) -> dict[str, Any]:
+            profiles: dict[str, list[float]], today: date | None = None) -> dict[str, Any]:
     """Savings per month for the days start..end (unrounded, mergeable)."""
     rules = _rules(project)
     hist = empty_history(project)
@@ -241,11 +247,13 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                     rule_tot[r["id"]]["est_qty"] += q
                 rule_tot[r["id"]]["qty"] += q
             elif typ == "heatpump" and hp.switch_date(r) and d >= hp.switch_date(r):
+                if today is not None and d >= today:
+                    continue  # the current day is not complete yet
                 gas_series = (daily.get(r["id"]) or {}).get("all") or {}
                 temp, from_norm = hp.day_temp(r, (daily.get(r["id"]) or {}).get("temp") or {}, d)
                 actual = gas_series.get(d.isoformat())
                 model = profiles.get(r["id"])
-                if actual is None or not isinstance(model, dict):
+                if actual is None or not isinstance(model, dict) or "k" not in model:
                     continue
                 m = hp.measured_day(r, actual, temp, model["k"])
                 dd = daily.get(r["id"]) or {}
@@ -259,6 +267,18 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                 price_est |= pe1 or pe2
                 gas_saved, el_cost = m["gas"] * pg, m["el"] * pel
                 rr0 = row["rules"].setdefault(r["id"], {"qty": 0.0, "saved": 0.0})
+                if r.get("pv_ids"):
+                    pvv, pv_ly = hp.pv_day(dd.get("pv") or {}, d)
+                    ht = hp.house_total(_groups(dd), d)
+                    own = ht - (mel if mel is not None else el_model) if ht is not None else None
+                    avail = hp.pv_available(r, pvv, own, model)
+                    if pvv is not None:
+                        rr0["pv"] = rr0.get("pv", 0.0) + pvv
+                        rr0["pv_ly_days"] = rr0.get("pv_ly_days", 0.0) + (1.0 if pv_ly else 0.0)
+                    if avail is not None:
+                        cov = min(m["el"], avail)
+                        el_cost = (m["el"] - cov) * pel + cov * float(r.get("pv_price") or 0)
+                        rr0["m_pv_cov"] = rr0.get("m_pv_cov", 0.0) + cov
                 extra = {"m_el_model": el_model, "m_el_model_cost": el_model * pel}
                 if mel is not None:
                     extra["m_meter_days"] = 1.0
@@ -295,12 +315,27 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                 _hp_month(rr, tariffs, r, d, gas, temp, from_norm, full)
                 if estimated:
                     rr["est_days"] = rr.get("est_days", 0.0) + 1
+                if r.get("pv_ids"):
+                    pvv, pv_ly = hp.pv_day((daily.get(r["id"]) or {}).get("pv") or {}, d)
+                    if pvv is not None:
+                        rr["pv"] = rr.get("pv", 0.0) + pvv
+                        rr["pv_ly_days"] = rr.get("pv_ly_days", 0.0) + (1.0 if pv_ly else 0.0)
                 if not sim["gas"] and not sim["el"]:
                     continue
                 pg, pe1 = unit_price(tariffs, r.get("medium"), r.get("zone") or "all", d)
                 pel, pe2 = el_unit_price(tariffs, r, d)
                 price_est |= pe1 or pe2
                 gas_saved, el_cost = sim["gas"] * pg, sim["el"] * pel
+                if r.get("pv_ids"):
+                    dd = daily.get(r["id"]) or {}
+                    pvv, _ = hp.pv_day(dd.get("pv") or {}, d)
+                    avail = hp.pv_available(r, pvv, hp.house_total(_groups(dd), d), profiles.get(r["id"]))
+                    if avail is not None:
+                        cov = min(sim["el"], avail)
+                        el_cost = (sim["el"] - cov) * pel + cov * float(r.get("pv_price") or 0)
+                        rr["pv_cov"] = rr.get("pv_cov", 0.0) + cov
+                        for gi, kk in enumerate(hp.PV_GRID):
+                            rr[f"pvc:{gi}"] = rr.get(f"pvc:{gi}", 0.0) + min(full["el"] * kk, avail)
                 qty = sim["gas"]
                 val = gas_saved - el_cost
                 tot = rule_tot[r["id"]]
@@ -369,7 +404,7 @@ def roi(project: dict, investments: list[dict], tariffs: list[dict],
     """
     start = project_start(project, investments, today)
     profiles = profiles_for(project, daily, start, today)
-    return finalize(project, investments, history(project, tariffs, daily, start, today, profiles), today)
+    return finalize(project, investments, history(project, tariffs, daily, start, today, profiles, today), today)
 
 
 def finalize(project: dict, investments: list[dict], hist: dict[str, Any], today: date) -> dict[str, Any]:

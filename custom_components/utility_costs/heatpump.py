@@ -282,3 +282,52 @@ def meter_el(rule: dict, house: dict[str, float], exclude: dict[str, float], run
     if runs is not None and d.isoformat() in runs and runs[d.isoformat()] <= 0:
         return 0.0
     return max(0.0, net - model["el_base"])
+
+
+# ---------------------------------------------------------------------------
+# PV: pump electricity that the house's own PV covers is not bought.
+# PV available for the pumps on a day = PV production - the house's own use
+# (without the pumps). Days without PV data use the same day a year earlier.
+
+PV_GRID = [0.1, 0.2, 0.35, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]
+
+
+def pv_day(pv: dict[str, float], d: date) -> tuple[float | None, bool]:
+    v = pv.get(d.isoformat())
+    if v is not None:
+        return float(v), False
+    try:
+        ly = d.replace(year=d.year - 1)
+    except ValueError:  # 29 February
+        ly = d.replace(year=d.year - 1, day=28)
+    v = pv.get(ly.isoformat())
+    return (float(v), True) if v is not None else (None, False)
+
+
+def house_total(groups: list[dict], d: date) -> float | None:
+    """Raw consumption of all meter groups on a day (None if any is missing)."""
+    if not groups:
+        return None
+    vals = [(g.get("house") or {}).get(d.isoformat()) for g in groups]
+    if any(v is None for v in vals):
+        return None
+    return float(sum(vals))
+
+
+def house_avg(groups: list[dict], days_: list[date]) -> float | None:
+    vals = [v for v in (house_total(groups, d) for d in days_) if v is not None]
+    return sum(vals) / len(vals) if vals else None
+
+
+def pv_available(rule: dict, pv: float | None, house_own: float | None, model: dict | None) -> float | None:
+    """PV energy left for the pumps after the house's own use (None when unknown)."""
+    if pv is None:
+        return None
+    own = house_own
+    if own is None:
+        own = _num(rule.get("house_kwh_day"), -1.0)
+        if own < 0:
+            own = (model or {}).get("house_avg")
+    if own is None:
+        return None
+    return max(0.0, pv - own)

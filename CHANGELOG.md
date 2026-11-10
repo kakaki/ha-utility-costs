@@ -8,6 +8,8 @@
 - Measured period can read the pump electricity from the house meter: house consumption minus separately metered loads (washing machine, dryer, water heater…) minus the average of the days before the switch. Optional "hours in heating mode" sensors: on a day without heating the extra consumption is not given to the pumps. The view compares meter vs. COP model and shows the heating hours.
 - Meter groups: the house can be split into groups (e.g. floors), each with its own meter, loads to subtract and heating-hour sensors; each group has its own baseline, so a quiet floor does not hide the pumps of the other. The comparison card shows the pump electricity per group.
 - Docs: step-by-step guide "Heat pump simulation" (EN/PL) with a fictional example house – gas split by boiler status (YAML), outdoor temperature, house meters per floor, heating-hour helpers, rule settings – and screenshots.
+- Own PV in the heat pump rule: pump electricity covered by the day's PV surplus (production minus the house's own use) is not bought (or is priced at a set value); days without PV data use the same day a year earlier. The monthly table shows PV production and the part used by the pumps; the sliders take it into account.
+- Measured period counts complete days only (the running day joins the next day); the saving tile splits the simulated and the measured part; the real share of the pumps is shown from 3 measured days and never negative.
 - The ROI result of a heat pump rule carries per-month inputs at 100 % share (heating gas and its cost, replaceable gas, pump electricity and its cost per tariff zone, temperature, peak daily heat) so the view can rescale them.
 
 ## 0.8.1
