@@ -133,3 +133,70 @@ def el_zones(rule: dict) -> list[tuple[str, float]]:
     if not items or tot <= 0:
         return [("all", 1.0)]
     return [(z, p / tot) for z, p in items]
+
+
+# ---------------------------------------------------------------------------
+# Measured period: after "switch_date" the pumps really heat, so the heating gas
+# meter already shows the reduced use. The gas the house would have needed is
+# then taken from a degree-day model fitted on the days before the switch:
+#     gas_per_day = k * max(0, 15 degC - T)
+# and the saving is that baseline minus the gas actually burnt.
+
+def switch_date(rule: dict) -> date | None:
+    raw = rule.get("switch_date")
+    try:
+        return date.fromisoformat(str(raw)[:10]) if raw else None
+    except ValueError:
+        return None
+
+
+def fit_k(rule: dict, gas: dict[str, float], temps: dict[str, float], days: list[date]) -> dict[str, float]:
+    """Least-squares k (gas units per degree day) from days with gas data.
+
+    Days with a measured temperature are preferred; typical temperatures are
+    used only when there are fewer than 14 measured heating days. Without any
+    data the yearly estimate is spread over a normal year's degree days.
+    """
+    def collect(measured_only: bool) -> tuple[float, float, int]:
+        sxy = sxx = 0.0
+        n = 0
+        for d in days:
+            g = gas.get(d.isoformat())
+            if g is None:
+                continue
+            t, from_norm = day_temp(rule, temps, d)
+            if measured_only and from_norm:
+                continue
+            h = hdd(t)
+            if h <= 0:
+                continue
+            sxy += g * h
+            sxx += h * h
+            n += 1
+        return sxy, sxx, n
+
+    sxy, sxx, n = collect(True)
+    source = "measured"
+    if n < 14:
+        sxy, sxx, n = collect(False)
+        source = "typical"
+    if n and sxx > 0:
+        return {"k": sxy / sxx, "n": float(n), "measured": 1.0 if source == "measured" else 0.0}
+    tot = year_hdd(rule)
+    per_year = _num(rule.get("estimate_per_year"), 0.0)
+    return {"k": per_year / tot if tot > 0 else 0.0, "n": 0.0, "measured": 0.0}
+
+
+def measured_day(rule: dict, actual: float, temp: float, k: float) -> dict[str, float]:
+    """Baseline gas, gas avoided and pump electricity on a measured day."""
+    kwh_unit = _num(rule.get("kwh_per_unit"), 11.0)
+    eff = _num(rule.get("boiler_eff_pct"), 90.0) / 100
+    base = k * hdd(temp)
+    avoided = max(0.0, base - max(actual, 0.0))
+    heat = avoided * kwh_unit * eff
+    el = 0.0
+    if heat > 0:
+        probe = simulate_day({**rule, "share_pct": 100, "losses_pct": 0}, avoided, temp)
+        el = probe["el"] / probe["heat"] * heat if probe["heat"] > 0 else heat / cop_at(temp, COP_REF_SCOP, _num(rule.get("cop_pct"), 100.0))
+        el *= 1 + _num(rule.get("losses_pct"), 0.0) / 100
+    return {"base": base, "gas": avoided, "heat": heat, "el": el}

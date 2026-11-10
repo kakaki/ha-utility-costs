@@ -362,4 +362,7 @@ details.adv { margin-top:16px; } details.adv summary { cursor:pointer; color: va
     .hpdev .dname { grid-column: auto; }
   }
   @media (max-width: 700px) { .grid.pfields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .grid.pfields .pname { grid-column: 1 / -1; } }
+  .sb.meas .sstack { outline: 2px solid var(--success-color, #4FB477); outline-offset: 2px; border-radius: 3px; }
+  .sb.meas.part .sstack { outline-style: dashed; }
+  .mtag { font-size: 11px; color: var(--success-color, #4FB477); white-space: nowrap; }
 `;

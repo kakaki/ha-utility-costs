@@ -153,8 +153,15 @@ def profiles_for(project: dict, daily: dict, start: date, end: date) -> dict[str
     """Per-rule seasonal profile used to estimate days without statistics."""
     profiles: dict[str, list[float]] = {}
     for r in _rules(project):
+        if r.get("type") == "heatpump":
+            sw = hp.switch_date(r)
+            if sw:
+                dd = (daily.get(r["id"]) or {})
+                fit_days = [d for d in days(min(start, sw), end) if d < sw]
+                profiles[r["id"]] = hp.fit_k(r, dd.get("all") or {}, dd.get("temp") or {}, fit_days)
+            continue
         if r.get("type", "qty") != "qty":
-            continue  # heatpump rules estimate by degree days
+            continue
         series = (daily.get(r["id"]) or {}).get("all") or {}
         per_month: dict[str, float] = {}
         md: dict[str, list[int]] = {}
@@ -213,6 +220,31 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                     est_val = val
                     rule_tot[r["id"]]["est_qty"] += q
                 rule_tot[r["id"]]["qty"] += q
+            elif typ == "heatpump" and hp.switch_date(r) and d >= hp.switch_date(r):
+                gas_series = (daily.get(r["id"]) or {}).get("all") or {}
+                temp, from_norm = hp.day_temp(r, (daily.get(r["id"]) or {}).get("temp") or {}, d)
+                actual = gas_series.get(d.isoformat())
+                model = profiles.get(r["id"])
+                if actual is None or not isinstance(model, dict):
+                    continue
+                m = hp.measured_day(r, actual, temp, model["k"])
+                pg, pe1 = unit_price(tariffs, r.get("medium"), r.get("zone") or "all", d)
+                pel, pe2 = el_unit_price(tariffs, r, d)
+                price_est |= pe1 or pe2
+                gas_saved, el_cost = m["gas"] * pg, m["el"] * pel
+                qty = m["gas"]
+                val = gas_saved - el_cost
+                tot = rule_tot[r["id"]]
+                for k, v in (("qty", qty), ("el", m["el"]), ("gas_saved", gas_saved), ("el_cost", el_cost)):
+                    tot[k] += v
+                rr = row["rules"].setdefault(r["id"], {"qty": 0.0, "saved": 0.0})
+                for k, v in (("el", m["el"]), ("gas_saved", gas_saved), ("el_cost", el_cost),
+                             ("m_days", 1.0), ("m_base", m["base"]), ("m_base_cost", m["base"] * pg),
+                             ("m_actual", actual), ("m_actual_cost", actual * pg), ("m_el", m["el"]),
+                             ("m_el_cost", el_cost), ("tsum", temp), ("tdays", 1.0), ("tn", 1.0 if from_norm else 0.0)):
+                    rr[k] = rr.get(k, 0.0) + v
+                rr["max_mheat"] = max(rr.get("max_mheat", 0.0), m["heat"])
+                sign = 1.0
             elif typ == "heatpump":
                 gas_series = (daily.get(r["id"]) or {}).get("all") or {}
                 temp, from_norm = hp.day_temp(r, (daily.get(r["id"]) or {}).get("temp") or {}, d)
@@ -266,12 +298,14 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
             row["saved"] += val
             row["estimated"] += est_val
     hist["price_est"] = price_est
+    hist["models"] = {rid: v for rid, v in profiles.items() if isinstance(v, dict)}
     return hist
 
 
 def merge_history(a: dict[str, Any], b: dict[str, Any]) -> dict[str, Any]:
     """Join two histories over disjoint day ranges."""
-    out = {"months": {**a["months"]}, "rule_tot": {}, "price_est": bool(a["price_est"] or b["price_est"])}
+    out = {"months": {**a["months"]}, "rule_tot": {}, "price_est": bool(a["price_est"] or b["price_est"]),
+           "models": {**(a.get("models") or {}), **(b.get("models") or {})}}
     for mk, row in b["months"].items():
         if mk in out["months"]:
             x = out["months"][mk]
@@ -412,4 +446,5 @@ def finalize(project: dict, investments: list[dict], hist: dict[str, Any], today
         "years": year_list,
         "months": months,
         "rules": [{"id": rid, **{k: round(v, 2) for k, v in t.items()}} for rid, t in rule_tot.items()],
+        "models": {rid: {k: round(v, 5) for k, v in m.items()} for rid, m in (hist.get("models") or {}).items()},
     }

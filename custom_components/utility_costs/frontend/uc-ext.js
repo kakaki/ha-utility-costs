@@ -37,6 +37,8 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       <h5>${esc(t.hp_assume)}</h5>
       <div class="grid g4">${n("share_pct", r.share_pct, "85", t.hp_share)}${n("cop_pct", r.cop_pct, "100", t.hp_cop)}
         ${n("kwh_per_unit", r.kwh_per_unit, "11", t.hp_kwh)}${n("boiler_eff_pct", r.boiler_eff_pct, "90", t.hp_eff)}</div>
+      <h5>${esc(t.hp_switch)}</h5><p class="muted small">${esc(t.hp_switch_hint)}</p>
+      <div class="grid g4"><label class="half">${esc(t.hp_switch_lbl)}<input type="${r.switch_date ? "date" : "text"}" data-lazydate data-p="${b}.switch_date" value="${esc(r.switch_date || "")}" placeholder="${esc(t.hp_switch_none)}"></label></div>
       <h5>${esc(t.hp_devices)}</h5><div class="hpdevs">${devs}</div><button type="button" class="small" data-act="adddev" data-i="${i}">${esc(t.add_dev)}</button>
       <h5>${esc(t.hp_temp)}</h5><p class="muted small">${esc(t.hp_temp_hint)}</p>
       <div class="ids">${(r.temp_ids || []).map((id, j) => `<span class="ent" title="${esc(id)}">${esc(this.entName(id))}<small>${esc(id)}</small><button type="button" class="xs" data-act="rm" data-p="${b}.temp_ids" data-i="${j}">✕</button></span>`).join("")}
@@ -727,8 +729,8 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       const o = JSON.parse(JSON.stringify(this._pd.obj));
       if (!o.name) { this._pd.error = this.t.name + " *"; this._rerenderKeep(); return; }
       (o.rules || []).forEach((r) => { if (r.sources) r.sources = this._cleanSources(r.sources); if (r.type === "money") { delete r.medium; delete r.zone; delete r.sources; } if (r.type === "fixed") { delete r.zone; delete r.sources; delete r.estimate_per_year; }
-        if (r.type === "heatpump") { delete r.effect; r.devices = (r.devices || []).filter((d) => Number(d.kw) > 0); r.temp_ids = (r.temp_ids || []).filter(Boolean); }
-        else { ["temp_ids", "temp_normals", "share_pct", "kwh_per_unit", "boiler_eff_pct", "cop_pct", "losses_pct", "devices", "el_medium", "el_zones"].forEach((k) => delete r[k]); } });
+        if (r.type === "heatpump") { delete r.effect; if (!r.switch_date) delete r.switch_date; r.devices = (r.devices || []).filter((d) => Number(d.kw) > 0); r.temp_ids = (r.temp_ids || []).filter(Boolean); }
+        else { ["switch_date", "temp_ids", "temp_normals", "share_pct", "kwh_per_unit", "boiler_eff_pct", "cop_pct", "losses_pct", "devices", "el_medium", "el_zones"].forEach((k) => delete r[k]); } });
       try {
         const saved = await this.ws({ type: "save", collection: "projects", item: o });
         this._proj = saved.id; this._pd = null; this._msg = this.t.saved;

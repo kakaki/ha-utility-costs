@@ -111,3 +111,37 @@ def test_whatif_inputs_scale_to_result():
         assert abs((0.9 * v["ez:night"] + 0.1 * v["ez:day"]) * scale - v["el_cost"]) < 0.05
         assert v["base"] >= v["g100"] and v["tdays"] == (31 if m["month"] == "2024-01" else 29)
         assert v["max_heat"] > 0
+
+
+def test_fit_k_and_measured_period():
+    start = date(2024, 1, 1)
+    days_ = [start + timedelta(i) for i in range(40)]
+    temps = {d.isoformat(): -2.0 + (i % 8) for i, d in enumerate(days_)}
+    k_true = 0.6
+    gas = {}
+    for i, d in enumerate(days_):
+        h = max(0.0, 15 - temps[d.isoformat()])
+        gas[d.isoformat()] = k_true * h if i < 30 else k_true * h * 0.2   # from day 30 pumps take 80 %
+    sw = days_[30]
+    r = rule(switch_date=sw.isoformat(), losses_pct=0)
+    m = hp.fit_k(r, gas, temps, [d for d in days_ if d < sw])
+    assert abs(m["k"] - k_true) < 1e-9 and m["measured"] == 1.0
+    res = roi.roi({"start_date": "2024-01-01", "rules": [r]}, [], TAR, {"h": {"all": gas, "temp": temps}}, days_[-1])
+    feb = [x for x in res["months"] if x["month"] == "2024-02"][0]["rules"]["h"]
+    # Feb 1..9 are all measured: avoided gas = 80 % of the baseline
+    assert feb["m_days"] == 9
+    assert abs(feb["qty"] - 0.8 * feb["m_base"]) < 0.01
+    assert abs(feb["m_actual"] - 0.2 * feb["m_base"]) < 0.01
+    assert feb["el"] > 0 and abs(feb["saved"] - (feb["gas_saved"] - feb["el_cost"])) < 0.02
+    assert "base" not in feb                           # no what-if inputs on measured days
+    assert abs(res["models"]["h"]["k"] - k_true) < 1e-4
+
+
+def test_fit_k_fallbacks():
+    r = rule(estimate_per_year=1000)
+    m = hp.fit_k(r, {}, {}, [date(2024, 1, 1)])
+    assert m["n"] == 0 and abs(m["k"] - 1000 / hp.year_hdd(r)) < 1e-9
+    d0 = date(2024, 1, 1)
+    gas = {(d0 + timedelta(i)).isoformat(): 5.0 for i in range(20)}
+    m2 = hp.fit_k(r, gas, {}, [d0 + timedelta(i) for i in range(20)])  # no sensor → typical temperatures
+    assert m2["measured"] == 0.0 and m2["k"] > 0
