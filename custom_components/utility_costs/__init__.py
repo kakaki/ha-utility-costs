@@ -96,7 +96,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: UtilityCostsConfigEntry)
         hass.http.register_view(export.TemplateView())
         hass.http.register_view(export.ImportTableView())
         flags["views"] = True
-    card_url = f"{STATIC_URL}/utility-costs-card.js?v={version}"
+    card_url = f"{STATIC_URL}/uc-load.js?m=utility-costs-card.js&v={version}"
     if flags.get("card") != card_url:
         frontend.add_extra_js_url(hass, card_url)
         flags["card"] = card_url
@@ -107,7 +107,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: UtilityCostsConfigEntry)
         frontend_url_path=PANEL_URL,
         sidebar_title=PANEL_TITLES.get(lang, PANEL_TITLES["en"]),
         sidebar_icon="mdi:cash-multiple",
-        module_url=f"{STATIC_URL}/utility-costs-panel.js?v={version}",
+        module_url=f"{STATIC_URL}/uc-load.js?m=utility-costs-panel.js&v={version}",
         require_admin=False,
         config={"version": version},
     )

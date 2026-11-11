@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.9.4
+- After an update the panel and the card load the new files on the next page refresh – no Home Assistant restart needed for changes in the panel. A small loader reads the installed version (`frontend/version.json`) on every load. This takes effect after one restart with 0.9.4.
+
 ## 0.9.3
 - *+ Add sensor* stays below the fields like in Home Assistant: each click opens one more field, empty fields are ignored, Esc closes a field.
 - Settings: clicking inside a medium card (e.g. picking a sensor on a phone) no longer toggles the medium filter and re-renders the page – this was what made the page jump.

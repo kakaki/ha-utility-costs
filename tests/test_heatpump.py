@@ -274,3 +274,9 @@ def test_device_meters_measure_and_calibrate():
     off = roi.roi({"start_date": d0.isoformat(), "rules": [{**r, "cal_from_meters": False}]}, [], TAR,
                   {"h": {**dd, "dev": dev}}, days_[-1] + timedelta(1))
     assert "cal" not in off["models"]["h"]
+
+
+def test_frontend_version_matches_manifest():
+    import json, pathlib
+    base = pathlib.Path(__file__).resolve().parents[1] / "custom_components" / "utility_costs"
+    assert json.loads((base / "frontend" / "version.json").read_text())["version"] == json.loads((base / "manifest.json").read_text())["version"]

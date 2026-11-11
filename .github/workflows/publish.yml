@@ -50,7 +50,10 @@ jobs:
           cat notes.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Zip integration
-        run: cd custom_components/utility_costs && zip -r ../../utility_costs.zip . -x '__pycache__/*'
+        run: |
+          cd custom_components/utility_costs
+          jq '{version}' manifest.json > frontend/version.json   # the panel loader reads it
+          zip -r ../../utility_costs.zip . -x '__pycache__/*'
 
       - uses: softprops/action-gh-release@v2
         with:
