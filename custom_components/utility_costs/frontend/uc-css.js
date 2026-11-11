@@ -214,7 +214,13 @@ table.yrs td small { display:block; font-size:11px; }
 .ent { display:inline-flex; align-items:center; gap:6px; background: var(--secondary-background-color); border-radius:16px; padding:4px 4px 4px 10px; font-size:13px; max-width:100%; }
 .ent small { color: var(--secondary-text-color); font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
 button.xs { min-height:24px; width:24px; padding:0; border-radius:50%; font-size:12px; border:none; }
-.addent { flex:1; min-width:180px; }
+.addent { flex:1 1 100%; min-width:180px; min-height:48px; border:none; border-bottom:1px solid var(--secondary-text-color); border-radius:8px 8px 0 0; padding:10px 14px; background: color-mix(in srgb, var(--primary-text-color) 8%, var(--card-background-color)); }
+.addent:focus { outline:none; border-bottom:2px solid var(--primary-color); }
+.addent[hidden] { display:none; }
+button.addbtn { display:inline-flex; align-items:center; gap:8px; min-height:40px; padding:0 18px 0 14px; border-radius:20px; border:none; cursor:pointer; font:inherit; font-size:15px; font-weight:500; color: var(--primary-color); background: color-mix(in srgb, var(--primary-color) 18%, var(--card-background-color)); }
+button.addbtn:hover { background: color-mix(in srgb, var(--primary-color) 26%, var(--card-background-color)); }
+button.addbtn[hidden] { display:none; }
+button.addbtn .plus { font-size:22px; line-height:1; font-weight:400; }
 label.mt { margin-top:10px; }
 .hint { font-size:13px; margin-top:0; }
 .savebar { position:sticky; bottom:0; padding:12px 0; background: linear-gradient(transparent, var(--primary-background-color) 30%); z-index:1; margin-top:8px; }

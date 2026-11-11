@@ -656,7 +656,7 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
     const b = this.shadowRoot.querySelector(".dbody"); const top = b ? b.scrollTop : 0;
     const sc = this._scrollers().map((el) => [el, el.scrollTop]);
     const y = window.scrollY;
-    const sel = anchor?.dataset?.addto ? `[data-addto="${anchor.dataset.addto}"]` : null;
+    const sel = anchor?.dataset?.addto ? `[data-addbtn="${anchor.dataset.addto}"]` : null;
     const ay = sel ? anchor.getBoundingClientRect().top : null;
     if (sel) this.shadowRoot.activeElement?.blur?.(); // closes the mobile keyboard, so the viewport does not resize mid-render
     this._render();
@@ -710,6 +710,16 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       if (el.checked) delete r.cal_from_meters; else r.cal_from_meters = false;
     }));
     root.querySelectorAll("[data-sync]").forEach((el) => el.addEventListener("change", () => { this._workSettings().sync[el.dataset.sync] = el.value.trim(); }));
+    root.querySelectorAll("input.addent[data-addto]").forEach((el) => {
+      if (el.previousElementSibling?.classList.contains("addbtn")) return;
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.className = "addbtn"; btn.dataset.addbtn = el.dataset.addto;
+      btn.innerHTML = `<span class="plus">+</span>${esc(this.t.add_entity.replace(/[….]+$/, ""))}`;
+      el.before(btn); el.hidden = true;
+      btn.addEventListener("click", () => { btn.hidden = true; el.hidden = false; el.focus(); });
+      el.addEventListener("blur", () => { if (!el.value.trim()) { el.hidden = true; btn.hidden = false; } });
+      el.addEventListener("keydown", (e) => { if (e.key === "Escape") { el.value = ""; el.blur(); } });
+    });
     root.querySelectorAll("[data-addto]").forEach((el) => el.addEventListener("change", () => {
       const v = el.value.trim(); if (!v) return;
       const obj = target(el); const arr = getP(obj, el.dataset.addto) || [];

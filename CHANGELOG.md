@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.9.2
+- Adding a sensor works like in Home Assistant: a clear *+ Add sensor* button, and the input appears only after clicking it (Esc or clicking away closes it). Used everywhere sensors are picked: settings, projects, meter groups, PV and devices.
+
 ## 0.9.1
 - Heat pump simulation: each device can have its own electricity meter (*Electricity meter of this unit*, kWh total). From the switch date that unit counts with its real consumption; days without its data (e.g. before the meter was installed) use the model or the meter groups as before. With meter groups the total is never below the metered sum.
 - The metered units correct the model: after 3 complete days the measured ÷ modelled electricity of those units (e.g. 120 %) is applied to the units without a meter and to the simulation of earlier seasons. Shown under the sliders and in the *meter vs model* card; can be turned off per project. Refreshed monthly or when the project is saved.
