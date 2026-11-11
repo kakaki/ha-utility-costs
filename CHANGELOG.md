@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.1
+- Heat pump simulation: each device can have its own electricity meter (*Electricity meter of this unit*, kWh total). From the switch date that unit counts with its real consumption; days without its data (e.g. before the meter was installed) use the model or the meter groups as before. With meter groups the total is never below the metered sum.
+- The metered units correct the model: after 3 complete days the measured ÷ modelled electricity of those units (e.g. 120 %) is applied to the units without a meter and to the simulation of earlier seasons. Shown under the sliders and in the *meter vs model* card; can be turned off per project. Refreshed monthly or when the project is saved.
+- Docs: step H (meter on a single unit) in the heat pump guide (EN/PL).
+
 ## 0.9.0
 - Heat pump simulation: *Season from the switch – real data only* (on by default). The season with the switch date is no longer simulated: days before the switch count as they were (gas only), days after use the meters, and the sliders change previous seasons only. The project totals (saved, yearly average, payback) count that season from the measurements only as well; turn the option off to simulate it again. A new *Simulation vs reality* card puts the measured saving next to the previous season's simulation for the same months, scaled to the measured days.
 - Settings on a phone: adding a sensor no longer jumps the page to the bottom – the edited field stays where it was (HA scrolls an inner container, which is now kept too).

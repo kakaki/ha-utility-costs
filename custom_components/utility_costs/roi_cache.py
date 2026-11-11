@@ -36,7 +36,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CACHE_KEY = f"{DOMAIN}.roi"
 CACHE_VERSION = 1
-CALC_VERSION = 9  # bump when roi.* changes its output
+CALC_VERSION = 10  # bump when roi.* changes its output
 CURRENT_MAX_AGE = timedelta(hours=1)
 
 
@@ -110,6 +110,11 @@ class RoiCache:
                 got = await self.stats.async_daily([{"id": "pv", "statistics": {"all": [{"from": None, "ids": list(r["pv_ids"])}]}}],
                                                    start - timedelta(days=366), end)
                 extra["pv"] = (got.get("pv") or {}).get("all") or {}
+            devm = [{"id": str(i), "statistics": {"all": [{"from": None, "ids": list(d["energy_ids"])}]}}
+                    for i, d in enumerate(r.get("devices") or []) if d.get("energy_ids")]
+            if devm:
+                got = await self.stats.async_daily(devm, start, end)
+                extra["dev"] = {m["id"]: (got.get(m["id"]) or {}).get("all") or {} for m in devm}
             groups = []
             for gi, g in enumerate(hp.meter_groups(r)):
                 meters = [{"id": key, "statistics": {"all": [{"from": None, "ids": list(g.get(f"{key}_ids") or [])}]}}

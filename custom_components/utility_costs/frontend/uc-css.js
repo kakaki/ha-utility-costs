@@ -357,6 +357,8 @@ details.adv { margin-top:16px; } details.adv summary { cursor:pointer; color: va
   .hpdev .dname { grid-column: 1 / -1; }
   .hpdev input { width: 100%; box-sizing: border-box; height: 42px; }
   .hpdev .drm { align-self: center; padding: 8px; }
+  .hpdev .dmeter { grid-column: 1 / -1; }
+  .hpdev .dmeter .lbl { font-size: 12px; color: var(--secondary-text-color); margin-bottom: 4px; }
   @container (min-width: 620px) {
     .hpdev { grid-template-columns: minmax(0, 3fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto; }
     .hpdev .dname { grid-column: auto; }

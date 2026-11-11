@@ -231,3 +231,46 @@ def test_real_only_day():
     assert not hp.real_only_day({**r, "sim_real_only": False}, date(2026, 10, 1))
     assert not hp.real_only_day({}, date(2026, 10, 1))
     assert hp.real_only_day({"switch_date": "2027-02-01"}, date(2026, 9, 1))
+
+
+def test_simulate_day_per_device_sums():
+    r = rule(losses_pct=10)
+    s = hp.simulate_day(r, 8.0, 0.0)
+    assert len(s["dev"]) == 2 and abs(sum(s["dev"]) - s["el"]) < 1e-9 and s["dev"][1] > s["dev"][0]
+
+
+def test_combine_el_modes():
+    r = rule()
+    model = [3.0, 5.0]
+    assert hp.combine_el(r, model, {0: 4.0, 1: 6.0}, 20.0)["el"] == 10.0          # all metered: exact
+    assert hp.combine_el(r, model, {0: 4.0}, 20.0)["el"] == 20.0                  # rest from the meter group
+    assert hp.combine_el(r, model, {0: 4.0}, 2.0)["el"] == 4.0                    # never below the metered sum
+    assert hp.combine_el(r, model, {0: 4.0}, None)["el"] == 9.0                   # rest from the model
+    assert hp.combine_el(r, model, {0: 4.0}, None, cal=1.2)["el"] == 4.0 + 6.0     # corrected model
+    assert hp.fit_cal(12, 10, 5) == 1.2 and hp.fit_cal(12, 10, 2) is None and hp.fit_cal(50, 10, 5) == 2.5
+
+
+def test_device_meters_measure_and_calibrate():
+    d0 = date(2024, 10, 1)
+    days_ = [d0 + timedelta(i) for i in range(40)]
+    temps = {d.isoformat(): 0.0 for d in days_}
+    gas = {d.isoformat(): (6.0 if i < 20 else 2.0) for i, d in enumerate(days_)}
+    sw = days_[20]
+    r = rule(switch_date=sw.isoformat(), losses_pct=0, devices=[{**DEV[0], "energy_ids": ["sensor.a"]}, DEV[1]])
+    dd = {"all": gas, "temp": temps}
+    base = roi.roi({"start_date": d0.isoformat(), "rules": [r]}, [], TAR, {"h": dd}, days_[-1] + timedelta(1))
+    # device A gets a meter from day 25 only (installed later) and uses 1.5 × what the model says
+    probe = hp.measured_day(r, 2.0, 0.0, base["models"]["h"]["k"])
+    dev = {"0": {d.isoformat(): probe["dev"][0] * 1.5 for i, d in enumerate(days_) if i >= 25}}
+    res = roi.roi({"start_date": d0.isoformat(), "rules": [r]}, [], TAR, {"h": {**dd, "dev": dev}}, days_[-1] + timedelta(1))
+    m = res["models"]["h"]
+    assert abs(m["cal"] - 1.5) < 1e-3 and m["dev_days"] == 15
+    tot = sum((x["rules"]["h"].get("m_el") or 0) for x in res["months"])
+    tot0 = sum((x["rules"]["h"].get("m_el") or 0) for x in base["months"])
+    # days 20-24: model ×1.5 (corrected), days 25-39: A measured + B model ×1.5 → everything ×1.5
+    assert abs(tot - tot0 * 1.5) < 0.05
+    assert sum((x["rules"]["h"].get("m_dev_days") or 0) for x in res["months"]) == 15
+    # switching the correction off keeps the measurement but not the model correction
+    off = roi.roi({"start_date": d0.isoformat(), "rules": [{**r, "cal_from_meters": False}]}, [], TAR,
+                  {"h": {**dd, "dev": dev}}, days_[-1] + timedelta(1))
+    assert "cal" not in off["models"]["h"]

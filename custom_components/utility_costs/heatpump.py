@@ -105,23 +105,25 @@ def simulate_day(rule: dict, gas: float, temp: float) -> dict[str, float]:
     eff = _num(rule.get("boiler_eff_pct"), 90.0) / 100
     share = min(max(_num(rule.get("share_pct"), 0.0), 0.0), 100.0) / 100
     cop_pct = _num(rule.get("cop_pct"), 100.0)
-    out = {"gas": 0.0, "el": 0.0, "heat": 0.0}
+    all_dev = rule.get("devices") or []
+    out = {"gas": 0.0, "el": 0.0, "heat": 0.0, "dev": [0.0] * len(all_dev)}
     if gas <= 0 or share <= 0 or kwh_unit <= 0 or eff <= 0:
         return out
     target = gas * kwh_unit * eff * share
-    devices = [d for d in rule.get("devices") or [] if _num(d.get("kw"), 0) > 0]
-    total_kw = sum(_num(d.get("kw"), 0) for d in devices)
+    devices = [(i, d) for i, d in enumerate(all_dev) if _num(d.get("kw"), 0) > 0]
+    total_kw = sum(_num(d.get("kw"), 0) for _, d in devices)
     if not devices or total_kw <= 0:
         return out
-    for dev in devices:
+    loss = 1 + _num(rule.get("losses_pct"), 0.0) / 100
+    for i, dev in devices:
         kw = _num(dev.get("kw"), 0)
         if temp < _num(dev.get("min_temp"), -15.0):
             continue  # this room stays on gas today
         heat = min(target * kw / total_kw, kw * 24)
         out["heat"] += heat
-        out["el"] += heat / cop_at(temp, _num(dev.get("scop"), COP_REF_SCOP), cop_pct)
+        out["dev"][i] = heat / cop_at(temp, _num(dev.get("scop"), COP_REF_SCOP), cop_pct) * loss
     out["gas"] = out["heat"] / (kwh_unit * eff)
-    out["el"] *= 1 + _num(rule.get("losses_pct"), 0.0) / 100
+    out["el"] = sum(out["dev"])
     return out
 
 
@@ -195,11 +197,17 @@ def measured_day(rule: dict, actual: float, temp: float, k: float) -> dict[str, 
     avoided = max(0.0, base - max(actual, 0.0))
     heat = avoided * kwh_unit * eff
     el = 0.0
+    dev = [0.0] * len(rule.get("devices") or [])
     if heat > 0:
+        loss = 1 + _num(rule.get("losses_pct"), 0.0) / 100
         probe = simulate_day({**rule, "share_pct": 100, "losses_pct": 0}, avoided, temp)
-        el = probe["el"] / probe["heat"] * heat if probe["heat"] > 0 else heat / cop_at(temp, COP_REF_SCOP, _num(rule.get("cop_pct"), 100.0))
-        el *= 1 + _num(rule.get("losses_pct"), 0.0) / 100
-    return {"base": base, "gas": avoided, "heat": heat, "el": el}
+        if probe["heat"] > 0:
+            f = heat / probe["heat"] * loss
+            dev = [v * f for v in probe["dev"]]
+            el = sum(dev)
+        else:
+            el = heat / cop_at(temp, COP_REF_SCOP, _num(rule.get("cop_pct"), 100.0)) * loss
+    return {"base": base, "gas": avoided, "heat": heat, "el": el, "dev": dev}
 
 
 def house_net(house: dict[str, float], exclude: dict[str, float], d: date) -> float | None:
@@ -343,3 +351,52 @@ def real_only_day(rule: dict, d: date) -> bool:
     if sw is None or rule.get("sim_real_only") is False:
         return False
     return d >= date(sw.year if sw.month >= 9 else sw.year - 1, 9, 1)
+
+
+# --- per-device electricity meters ---------------------------------------------------------
+
+def metered_devices(rule: dict) -> list[int]:
+    """Indexes of the devices that have their own electricity meter."""
+    return [i for i, d in enumerate(rule.get("devices") or []) if d.get("energy_ids")]
+
+
+def device_meas(dev_series: dict, rule: dict, d: date) -> dict[int, float]:
+    """Measured kWh of each metered device on a day (devices without data that day are left out)."""
+    out: dict[int, float] = {}
+    for i in metered_devices(rule):
+        v = (dev_series.get(str(i)) or {}).get(d.isoformat())
+        if v is not None:
+            out[i] = max(0.0, v)
+    return out
+
+
+def combine_el(rule: dict, model_dev: list[float], meas: dict[int, float], group_el: float | None,
+               cal: float | None = None) -> dict[str, float]:
+    """Pump electricity of a measured day from device meters, meter groups and the model.
+
+    Devices with their own meter count exactly. The rest comes from the meter groups
+    (which also see the metered devices, so the total is never below the metered sum) or,
+    without groups, from the model of the remaining devices, corrected by ``cal``.
+    """
+    metered = sum(meas.values())
+    model_m = sum(model_dev[i] for i in meas if i < len(model_dev))
+    n = len([i for i, d in enumerate(rule.get("devices") or []) if _num(d.get("kw"), 0) > 0])
+    rest_model = sum(v for i, v in enumerate(model_dev) if i not in meas) * (cal or 1.0)
+    if meas and len(meas) >= n:
+        total = metered
+    elif group_el is not None:
+        total = max(group_el, metered)
+    else:
+        total = metered + rest_model
+    return {"el": total, "metered": metered, "model_metered": model_m}
+
+
+CAL_MIN_DAYS = 3
+CAL_MIN_KWH = 5.0
+
+
+def fit_cal(meas_kwh: float, model_kwh: float, n_days: int) -> float | None:
+    """Correction of the COP model from the metered devices: measured ÷ modelled electricity."""
+    if n_days < CAL_MIN_DAYS or model_kwh < CAL_MIN_KWH or meas_kwh <= 0:
+        return None
+    return min(max(meas_kwh / model_kwh, 0.5), 2.5)

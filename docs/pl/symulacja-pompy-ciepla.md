@@ -48,6 +48,7 @@ Po dacie **„Klimatyzatory grzeją od”** wynik przestaje być symulacją i st
 | E | Liczniki odbiorników do odjęcia: pralka, suszarka, zmywarka… | mniej szumu w pomiarze | opcjonalne |
 | F | Godziny pracy klimatyzatorów w trybie grzania na dobę | dzień bez grzania = brak prądu klimatyzatorów | opcjonalne |
 | G | Licznik produkcji PV (`total_increasing`, kWh) | część prądu klimatyzatorów za darmo | opcjonalne |
+| H | Licznik prądu pojedynczego klimatyzatora (`total_increasing`, kWh), np. gniazdko z pomiarem lub licznik na szynę DIN | dokładne zużycie tego urządzenia i korekta modelu | opcjonalne |
 
 Integracja czyta wyłącznie **statystyki długoterminowe** HA. Czujnik bez `state_class` nie trafi do statystyk,
 a recorder trzyma zwykłą historię tylko kilka dni. Dlatego wszystkie czujniki poniżej mają ustawione `state_class`.
@@ -185,6 +186,21 @@ nie jest przypisywana klimatyzacji.
 jest mieszany (rano piec, wieczorem klimatyzatory), więc jako datę przejścia najlepiej podać dzień następny.
 Faktyczny udział klimatyzatorów pokazuje się od 3 pełnych dni pomiaru.
 
+### Krok H: licznik na pojedynczym klimatyzatorze (opcjonalnie)
+
+Jeśli klimatyzator ma własny licznik prądu, dodaj go przy tym urządzeniu w projekcie (*Licznik prądu tego
+urządzenia*). Można to zrobić także później, np. gdy liczniki zostaną zamontowane w trakcie sezonu.
+
+- **Pomiar.** Od dnia przejścia to urządzenie liczy się według faktycznego zużycia. Dni bez jego danych (sprzed
+  montażu licznika) liczą się jak dotąd: z modelu albo z grup liczników.
+- **Reszta.** Przy grupach liczników suma pochodzi z grup i nigdy nie jest mniejsza niż to, co zmierzyły
+  urządzenia z licznikiem. Bez grup pozostałe klimatyzatory liczą się z modelu.
+- **Korekta.** Po 3 pełnych dniach integracja porównuje urządzenia z licznikiem z tym, co przewidywał dla nich
+  model (np. 120 %). Ten stosunek koryguje model dla klimatyzatorów bez licznika i symulację wcześniejszych
+  sezonów. Widać go pod suwakami; wyłączasz go opcją *Koryguj symulację pomiarem urządzeń z licznikiem*.
+
+Korekta odświeża się raz w miesiącu (albo po zapisaniu projektu), więc nie skacze z dnia na dzień.
+
 ## Krok PV: własna fotowoltaika (opcjonalnie)
 
 Wskaż licznik produkcji PV, np. `sensor.pv_energy_total` (`total_increasing`, kWh). Dla każdego dnia:
@@ -220,6 +236,7 @@ Szablon sam podpina część „Ogrzewanie” gazu i czujnik temperatury, jeśli
 | Własne PV | `sensor.pv_energy_total`, wartość 0 | krok PV |
 | Klimatyzatory grzeją od | 2026-11-01 | puste = tylko symulacja; najlepiej dzień po faktycznym przejściu |
 | Liczniki prądu (grupy) | Piętro, Parter (tabela w kroku D) | opcjonalne |
+| Licznik prądu urządzenia | `sensor.living_room_ac_energy` przy klimatyzatorze w salonie | opcjonalne, krok H |
 
 Wydatki dodajesz w sekcji **Wydatki** pod widokiem, np. zakup i montaż. Bez wydatków projekt pokazuje samą
 oszczędność.

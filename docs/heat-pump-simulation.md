@@ -47,6 +47,7 @@ After the **"Pumps heat since"** date the result is no longer simulated but **me
 | E | Meters of loads to subtract: washing machine, dryer, dishwasher… | less noise | optional |
 | F | Hours per day each unit is in heating mode | a day without heating = no pump electricity | optional |
 | G | PV production meter (`total_increasing`, kWh) | part of the pump electricity for free | optional |
+| H | Electricity meter of a single unit (`total_increasing`, kWh), e.g. a smart plug or a DIN-rail meter | exact consumption of that unit and a correction of the model | optional |
 
 The integration reads **long-term statistics** only. A sensor without `state_class` never gets them, and the
 recorder keeps plain history for only a few days. That is why every sensor below sets `state_class`.
@@ -181,6 +182,21 @@ consumption is not given to the pumps.
 (boiler in the morning, pumps in the evening), so use the next day as the switch date. The real share of the pumps
 is shown from 3 complete measured days.
 
+### Step H: a meter on a single unit (optional)
+
+If a unit has its own electricity meter, add it to that device in the project (*Electricity meter of this unit*).
+It can also be added later, e.g. when you install the meters in the middle of a season.
+
+- **Measurement.** From the switch date, that unit counts with its real consumption. Days without its data
+  (before the meter was installed) use the model or the meter groups as before.
+- **The rest.** With meter groups, the total comes from the groups and is never below the metered sum. Without
+  groups, the other units come from the model.
+- **Correction.** After 3 complete days the integration compares the metered units with what the model expected
+  for them (e.g. 120 %). That ratio corrects the model for the units without a meter and the simulation of the
+  earlier seasons. It is shown under the sliders; turn it off with *Correct the simulation with the metered units*.
+
+The correction is refreshed once a month (or after you save the project), so it does not jump from day to day.
+
 ## Step PV: own photovoltaics (optional)
 
 Pick the PV production meter, e.g. `sensor.pv_energy_total` (`total_increasing`, kWh). For each day:
@@ -217,6 +233,7 @@ The template links the "Heating" gas part and an outdoor temperature sensor when
 | Own PV | `sensor.pv_energy_total`, value 0 | step PV |
 | Pumps heat since | 2026-11-01 | empty = simulation only; ideally the day after the real switch |
 | Electricity meters (groups) | Upstairs, Ground floor (table in step D) | optional |
+| Device electricity meter | `sensor.living_room_ac_energy` on the living room unit | optional, step H |
 
 Add expenses in the **Expenses** section below the view, e.g. purchase and installation. Without expenses the
 project shows the saving only.

@@ -164,6 +164,29 @@ def _groups(dd: dict) -> list[dict]:
     return []
 
 
+def _dev_cal(r: dict, dd: dict, sw: date, end: date, model: dict) -> dict:
+    """Measured vs modelled electricity of the devices with their own meter (complete days from the switch)."""
+    meas = mod = 0.0
+    n = 0
+    for d in days(sw, end):
+        if d >= end:
+            break  # the last day is not complete yet
+        actual = (dd.get("all") or {}).get(d.isoformat())
+        dm = hp.device_meas(dd.get("dev") or {}, r, d)
+        if actual is None or not dm:
+            continue
+        temp, _ = hp.day_temp(r, dd.get("temp") or {}, d)
+        m = hp.measured_day(r, actual, temp, model["k"])
+        meas += sum(dm.values())
+        mod += sum(m["dev"][i] for i in dm)
+        n += 1
+    out = {"dev_meas": meas, "dev_model": mod, "dev_days": float(n)}
+    cal = hp.fit_cal(meas, mod, n)
+    if cal is not None and r.get("cal_from_meters", True) is not False:
+        out["cal"] = cal
+    return out
+
+
 def _rules(project: dict) -> list[dict]:
     return [r for r in project.get("rules") or [] if r.get("id")]
 
@@ -183,6 +206,8 @@ def profiles_for(project: dict, daily: dict, start: date, end: date) -> dict[str
             ha = hp.house_avg(_groups(dd), before)
             if ha is not None:
                 model["house_avg"] = ha
+            if sw and "k" in model and hp.metered_devices(r):
+                model.update(_dev_cal(r, dd, sw, end, model))
             if model:
                 profiles[r["id"]] = model
             continue
@@ -262,6 +287,18 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                 el_model = m["el"]
                 if mel is not None:
                     m["el"] = mel * (1 + float(r.get("losses_pct") or 0) / 100)
+                pump_meas = mel
+                dmeas = hp.device_meas(dd.get("dev") or {}, r, d)
+                dev_extra: dict = {}
+                if dmeas:
+                    c = hp.combine_el(r, m["dev"], dmeas, m["el"] if mel is not None else None, model.get("cal"))
+                    m["el"] = c["el"]
+                    dev_extra = {"m_dev_el": c["metered"], "m_dev_model": c["model_metered"], "m_dev_days": 1.0}
+                    if pump_meas is None:
+                        pump_meas = c["el"]  # PV own use below takes the measured value
+                elif mel is None and model.get("cal"):
+                    m["el"] *= model["cal"]  # model corrected by the devices that have a meter
+
                 pg, pe1 = unit_price(tariffs, r.get("medium"), r.get("zone") or "all", d)
                 pel, pe2 = el_unit_price(tariffs, r, d)
                 price_est |= pe1 or pe2
@@ -270,7 +307,7 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                 if r.get("pv_ids"):
                     pvv, pv_ly = hp.pv_day(dd.get("pv") or {}, d)
                     ht = hp.house_total(_groups(dd), d)
-                    own = ht - (mel if mel is not None else el_model) if ht is not None else None
+                    own = ht - (pump_meas if pump_meas is not None else el_model) if ht is not None else None
                     avail = hp.pv_available(r, pvv, own, model)
                     if pvv is not None:
                         rr0["pv"] = rr0.get("pv", 0.0) + pvv
@@ -279,7 +316,7 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                         cov = min(m["el"], avail)
                         el_cost = (m["el"] - cov) * pel + cov * float(r.get("pv_price") or 0)
                         rr0["m_pv_cov"] = rr0.get("m_pv_cov", 0.0) + cov
-                extra = {"m_el_model": el_model, "m_el_model_cost": el_model * pel}
+                extra = {"m_el_model": el_model, "m_el_model_cost": el_model * pel, **dev_extra}
                 if mel is not None:
                     extra["m_meter_days"] = 1.0
                     for gi, v in enumerate(per_group):
@@ -311,6 +348,11 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                     gas = hp.estimate_gas(r, temp)
                 sim = hp.simulate_day(r, gas, temp)
                 full = hp.simulate_day({**r, "share_pct": 100, "cop_pct": 100, "losses_pct": 0}, gas, temp)
+                cal = (profiles.get(r["id"]) or {}).get("cal") if isinstance(profiles.get(r["id"]), dict) else None
+                if cal:  # correction from the devices with their own electricity meter
+                    for x in (sim, full):
+                        x["el"] *= cal
+                        x["dev"] = [v * cal for v in x["dev"]]
                 rr = row["rules"].setdefault(r["id"], {"qty": 0.0, "saved": 0.0})
                 _hp_month(rr, tariffs, r, d, gas, temp, from_norm, full)
                 if estimated:
