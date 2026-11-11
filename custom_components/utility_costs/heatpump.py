@@ -331,3 +331,15 @@ def pv_available(rule: dict, pv: float | None, house_own: float | None, model: d
     if own is None:
         return None
     return max(0.0, pv - own)
+
+
+def real_only_day(rule: dict, d: date) -> bool:
+    """True for a day of the season with the switch date (or later) when the season is real data only.
+
+    Such days are not simulated: before the switch the house heated with gas as it was (no saving),
+    from the switch the measured branch applies.
+    """
+    sw = switch_date(rule)
+    if sw is None or rule.get("sim_real_only") is False:
+        return False
+    return d >= date(sw.year if sw.month >= 9 else sw.year - 1, 9, 1)

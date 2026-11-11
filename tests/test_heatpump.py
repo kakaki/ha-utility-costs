@@ -221,3 +221,13 @@ def test_current_day_not_measured():
     res = roi.roi({"start_date": d0.isoformat(), "rules": [r]}, [], TAR, {"h": {"all": gas, "temp": temps}}, days_[-1])
     v = res["months"][0]["rules"]["h"]
     assert v["m_days"] == 4          # days 20..23; day 24 is today, still running
+
+
+def test_real_only_day():
+    r = {"switch_date": "2026-11-11"}
+    assert hp.real_only_day(r, date(2026, 9, 1))
+    assert hp.real_only_day(r, date(2026, 11, 10))
+    assert not hp.real_only_day(r, date(2026, 8, 31))
+    assert not hp.real_only_day({**r, "sim_real_only": False}, date(2026, 10, 1))
+    assert not hp.real_only_day({}, date(2026, 10, 1))
+    assert hp.real_only_day({"switch_date": "2027-02-01"}, date(2026, 9, 1))

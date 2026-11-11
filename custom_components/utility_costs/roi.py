@@ -320,8 +320,8 @@ def history(project: dict, tariffs: list[dict], daily: dict, start: date, end: d
                     if pvv is not None:
                         rr["pv"] = rr.get("pv", 0.0) + pvv
                         rr["pv_ly_days"] = rr.get("pv_ly_days", 0.0) + (1.0 if pv_ly else 0.0)
-                if not sim["gas"] and not sim["el"]:
-                    continue
+                if hp.real_only_day(r, d) or (not sim["gas"] and not sim["el"]):
+                    continue  # season of the switch: real data only, no simulated saving
                 pg, pe1 = unit_price(tariffs, r.get("medium"), r.get("zone") or "all", d)
                 pel, pe2 = el_unit_price(tariffs, r, d)
                 price_est |= pe1 or pe2
