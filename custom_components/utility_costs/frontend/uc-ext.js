@@ -710,22 +710,34 @@ export const makeExt = ({ esc, getP, setP, uid }) => class {
       if (el.checked) delete r.cal_from_meters; else r.cal_from_meters = false;
     }));
     root.querySelectorAll("[data-sync]").forEach((el) => el.addEventListener("change", () => { this._workSettings().sync[el.dataset.sync] = el.value.trim(); }));
-    root.querySelectorAll("input.addent[data-addto]").forEach((el) => {
-      if (el.previousElementSibling?.classList.contains("addbtn")) return;
-      const btn = document.createElement("button");
-      btn.type = "button"; btn.className = "addbtn"; btn.dataset.addbtn = el.dataset.addto;
-      btn.innerHTML = `<span class="plus">+</span>${esc(this.t.add_entity.replace(/[….]+$/, ""))}`;
-      el.before(btn); el.hidden = true;
-      btn.addEventListener("click", () => { btn.hidden = true; el.hidden = false; el.focus(); });
-      el.addEventListener("blur", () => { if (!el.value.trim()) { el.hidden = true; btn.hidden = false; } });
-      el.addEventListener("keydown", (e) => { if (e.key === "Escape") { el.value = ""; el.blur(); } });
-    });
-    root.querySelectorAll("[data-addto]").forEach((el) => el.addEventListener("change", () => {
-      const v = el.value.trim(); if (!v) return;
-      const obj = target(el); const arr = getP(obj, el.dataset.addto) || [];
+    /* HA-style "+ Add sensor": every click opens one more field above the button; empty fields are ignored */
+    const addValue = (inp) => {
+      const v = inp.value.trim(); if (!v || inp.dataset.done) return;
+      inp.dataset.done = "1"; // the blur during re-render may fire change once more
+      const path = inp.dataset.addto, obj = target(inp), arr = getP(obj, path) || [];
       if (!arr.includes(v)) arr.push(v);
-      setP(obj, el.dataset.addto, arr); this._rerenderKeep(el);
-    }));
+      setP(obj, path, arr);
+      const rest = [...inp.parentElement.querySelectorAll("input.addent.open")].filter((x) => x !== inp && !x.value.trim()).length;
+      this._addOpen = rest ? { path, n: rest } : null;
+      this._rerenderKeep(inp);
+    };
+    root.querySelectorAll("input.addent[data-addto]").forEach((tpl) => {
+      if (tpl.nextElementSibling?.classList.contains("addbtn")) return;
+      tpl.hidden = true;
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.className = "addbtn"; btn.dataset.addbtn = tpl.dataset.addto;
+      btn.innerHTML = `<span class="plus">+</span>${esc(this.t.add_entity.replace(/[….]+$/, ""))}`;
+      tpl.after(btn);
+      const open = (focus) => {
+        const f = tpl.cloneNode(); f.hidden = false; f.classList.add("open"); f.value = "";
+        btn.before(f);
+        f.addEventListener("change", () => addValue(f));
+        f.addEventListener("keydown", (e) => { if (e.key === "Escape") f.remove(); });
+        if (focus) f.focus();
+      };
+      btn.addEventListener("click", () => open(true));
+      if (this._addOpen?.path === tpl.dataset.addto) { for (let k = 0; k < this._addOpen.n; k++) open(false); this._addOpen = null; }
+    });
     root.querySelectorAll("[data-act]").forEach((el) => el.addEventListener("click", () => {
       const obj = target(el), act = el.dataset.act;
       if (act === "add") {

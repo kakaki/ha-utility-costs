@@ -416,7 +416,7 @@ class UtilityCostsPanel extends HTMLElement {
     const setYear = async (y) => { this._year = y; if (["summary", "invoices"].includes(this._tab)) await this._loadSummary(); this._render(); };
     $("#year")?.addEventListener("change", (e) => setYear(Number(e.target.value)));
     this.shadowRoot.querySelectorAll("[data-ystep]").forEach((b) => b.addEventListener("click", (e) => { e.preventDefault(); setYear(Number(this._year) + Number(b.dataset.ystep)); }));
-    this.shadowRoot.querySelectorAll("[data-med]").forEach((b) => b.addEventListener("click", () => {
+    this.shadowRoot.querySelectorAll("button[data-med]").forEach((b) => b.addEventListener("click", () => {
       const id = b.dataset.med;
       if (!id) this._media = [];
       else this._media = this._media.includes(id) ? this._media.filter((x) => x !== id) : [...this._media, id];

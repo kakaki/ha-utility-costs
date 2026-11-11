@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.3
+- *+ Add sensor* stays below the fields like in Home Assistant: each click opens one more field, empty fields are ignored, Esc closes a field.
+- Settings: clicking inside a medium card (e.g. picking a sensor on a phone) no longer toggles the medium filter and re-renders the page – this was what made the page jump.
+
 ## 0.9.2
 - Adding a sensor works like in Home Assistant: a clear *+ Add sensor* button, and the input appears only after clicking it (Esc or clicking away closes it). Used everywhere sensors are picked: settings, projects, meter groups, PV and devices.
 
