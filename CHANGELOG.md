@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.9.5
+- Start-up refreshes (summaries after 60 s, payback after 90 s, notifications after 120 s) use `async_call_later` and are cancelled when the integration unloads, together with the pending debounced refreshes – a reload shortly after start no longer runs them against the old store and caches (thanks to the HACS review).
+
 ## 0.9.4
 - After an update the panel and the card load the new files on the next page refresh – no Home Assistant restart needed for changes in the panel. A small loader reads the installed version (`frontend/version.json`) on every load. This takes effect after one restart with 0.9.4.
 

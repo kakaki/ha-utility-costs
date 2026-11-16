@@ -225,6 +225,13 @@ class RoiCache:
                 await self.async_refresh(pid)
 
     @callback
+    @callback
+    def async_cancel(self) -> None:
+        """Cancel a pending debounced refresh (called when the entry unloads)."""
+        if self._pending:
+            self._pending.cancel()
+            self._pending = None
+
     def schedule_changed(self, *_: Any) -> None:
         if self._pending:
             self._pending.cancel()

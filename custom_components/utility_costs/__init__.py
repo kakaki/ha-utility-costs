@@ -24,7 +24,7 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.service import async_register_admin_service
-from homeassistant.helpers.event import async_track_time_change, async_track_time_interval
+from homeassistant.helpers.event import async_call_later, async_track_time_change, async_track_time_interval
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import async_get_integration
 from homeassistant.util import dt as dt_util
@@ -127,12 +127,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: UtilityCostsConfigEntry)
     entry.async_on_unload(async_dispatcher_connect(hass, SIGNAL_UPDATED, summaries.schedule_changed))
     entry.async_on_unload(async_track_time_interval(hass, summaries.async_refresh_current, timedelta(hours=1)))
     entry.async_on_unload(async_track_time_change(hass, summaries.async_refresh_current, hour=0, minute=5, second=0))
-    hass.loop.call_later(60, summaries.schedule_changed)
+    entry.async_on_unload(async_call_later(hass, 60, callback(lambda _now: summaries.schedule_changed())))
+    entry.async_on_unload(summaries.async_cancel)
 
     # Investment payback: recompute changed projects, current month hourly.
     entry.async_on_unload(async_dispatcher_connect(hass, SIGNAL_UPDATED, rois.schedule_changed))
     entry.async_on_unload(async_track_time_interval(hass, rois.async_refresh_all, timedelta(hours=1)))
-    hass.loop.call_later(90, rois.schedule_changed)
+    entry.async_on_unload(async_call_later(hass, 90, callback(lambda _now: rois.schedule_changed())))
+    entry.async_on_unload(rois.async_cancel)
 
     # Notifications: instalments every morning and after changes,
     # invoice deviations whenever a year summary was recalculated.
@@ -149,7 +151,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: UtilityCostsConfigEntry)
 
     entry.async_on_unload(async_dispatcher_connect(hass, SIGNAL_UPDATED, _changed))
     entry.async_on_unload(async_track_time_change(hass, notifier.async_check_installments, hour=9, minute=0, second=0))
-    hass.loop.call_later(120, _changed)
+    entry.async_on_unload(async_call_later(hass, 120, _changed))
     return True
 
 

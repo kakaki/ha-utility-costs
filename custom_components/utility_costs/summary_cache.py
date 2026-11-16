@@ -169,6 +169,13 @@ class SummaryCache:
                 await self.async_refresh(year)
 
     @callback
+    @callback
+    def async_cancel(self) -> None:
+        """Cancel a pending debounced refresh (called when the entry unloads)."""
+        if self._pending:
+            self._pending.cancel()
+            self._pending = None
+
     def schedule_changed(self) -> None:
         """Debounced background refresh after store changes."""
         if self._pending:
